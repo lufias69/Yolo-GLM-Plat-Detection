@@ -1,0 +1,18 @@
+path: C:/project/nuraeni
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 1
+names: ['plate']
+
+roboflow:
+  workspace: universitas-mataram
+  project: gabungan-uamje
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/universitas-mataram/gabungan-uamje/dataset/2
+  note: >-
+    Original dataset had two synonymous classes (license_plate / plat_nomor).
+    Preprocessed for single-class detection: class ids merged to 0 (plate) and
+    re-split 80/10/10 (train/valid/test) stratified by number of plates per image.

@@ -1,0 +1,28 @@
+{
+  "total_images": 1613,
+  "total_boxes": 1671,
+  "split_counts": {
+    "train": 1291,
+    "valid": 161,
+    "test": 161
+  },
+  "multi_plate_distribution": {
+    "train": {
+      "1": 1250,
+      "2": 37,
+      "3": 1,
+      "4": 2,
+      "5": 1
+    },
+    "valid": {
+      "1": 156,
+      "2": 5
+    },
+    "test": {
+      "1": 157,
+      "2": 4
+    }
+  },
+  "seed": 42,
+  "note": "Class IDs 0/1 merged to single class plate (id=0). Split per-image stratified by plate count."
+}

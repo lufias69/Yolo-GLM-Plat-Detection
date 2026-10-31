@@ -1,0 +1,24 @@
+# Python environment for ANPR YOLO + OCR
+# Create venv: python -m venv venv
+# Activate: venv/Scripts/python
+
+# Core ML / CV
+ultralytics>=8.3.0
+opencv-python>=4.10.0
+numpy>=1.26.0
+pillow>=10.0.0
+
+# Data / visualization
+pandas>=2.1.0
+matplotlib>=3.8.0
+tqdm>=4.66.0
+
+# OCR engines
+pytesseract>=0.3.10
+easyocr>=1.7.0
+paddleocr>=2.9.0
+paddlepaddle>=2.6.0
+
+# Notebook / utility (optional)
+jupyterlab
+ipywidgets

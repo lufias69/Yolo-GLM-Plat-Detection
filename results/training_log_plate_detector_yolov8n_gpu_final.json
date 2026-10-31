@@ -1,0 +1,13 @@
+{
+  "model": "yolov8n.pt",
+  "epochs": 25,
+  "seed": 42,
+  "metrics": {
+    "metrics/precision(B)": 0.9715374003776471,
+    "metrics/recall(B)": 0.9518072289156626,
+    "metrics/mAP50(B)": 0.9884118891237613,
+    "metrics/mAP50-95(B)": 0.7702161264531953,
+    "fitness": 0.7702161264531953
+  },
+  "best_weights": "C:\\project\\nuraeni\\runs\\detect\\plate_detector_yolov8n_gpu_final\\weights\\best.pt"
+}

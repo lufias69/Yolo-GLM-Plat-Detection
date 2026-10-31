@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+.superpowers/
+webapp/media/
+webapp/db.sqlite3
+runs/
+train/
+train_original/
+valid/
+test/
+crops_test/
+inference_outputs/
+*.log
+
+*.pt
+weights/

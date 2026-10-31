@@ -1,0 +1,10 @@
+{
+  "weights": "runs\\detect\\plate_detector_yolov8n_gpu_final\\weights\\best.pt",
+  "ocr_engine": "easyocr",
+  "n_images": 161,
+  "image_level_accuracy": 0.34782608695652173,
+  "detection_recall": 0.9813664596273292,
+  "end_to_end_plate_accuracy": 0.36024844720496896,
+  "mean_inference_seconds": 0.02372355638823894,
+  "fps": 42.15219605504655
+}

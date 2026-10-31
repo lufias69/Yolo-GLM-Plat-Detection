@@ -33,7 +33,7 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
 
 Satu gambar → inference langsung dengan model aktif; hasil (kotak + OCR + latensi)
 tampil di halaman dan **tidak** masuk batch/penilaian/laporan. Untuk cek cepat foto
-sebelum decidesetujuuji seri.
+sebelum pengujian seri.
 
 ## Model YOLO ganda (halaman /models/)
 

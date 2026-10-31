@@ -22,6 +22,32 @@ class InferenceError(Exception):
 ROTATE_FLAGS = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180,
                 270: cv2.ROTATE_90_COUNTERCLOCKWISE}
 
+import re
+
+PLATE_SHAPE = re.compile(r'^[A-Z]{1,3}[0-9 ]{1,6}[A-Z ]{0,3}$')
+
+
+def select_plate_fragment(frags) -> str:
+    """EasyOCR returns every text line in the crop — plates often include the
+    year sticker ("05 25"), which can score HIGHER than the plate itself.
+    Pick the fragment matching Indonesian plate shape (letters first, then
+    digits, optional trailing letters); fall back to the highest confidence."""
+    def norm(t):
+        from anpr.postprocessing import normalize_plate_text
+        return normalize_plate_text(t)
+
+    def compact(t):
+        return t.replace(' ', '')
+
+    shaped = [fr for fr in frags if PLATE_SHAPE.match(compact(norm(fr['text'])))
+              and any(c.isalpha() for c in norm(fr['text']))
+              and any(c.isdigit() for c in norm(fr['text']))]
+    pool = shaped or frags
+    if not pool:
+        return ''
+    best = max(pool, key=lambda fr: fr['conf'])
+    return norm(best['text'])
+
 
 def map_box_to_original(box, rotation_deg, orig_w, orig_h):
     """Map a detection box made on the rotated frame back to original coords.
@@ -128,8 +154,22 @@ class InferenceService:
         crop = image_bgr[y1:y2, x1:x2]
         if crop.size == 0:
             return '', 0.0
+        from anpr import preprocessing
         from anpr.postprocessing import normalize_plate_text
-        text, conf = self.engine.recognize(crop, preprocess=settings.ANPR['OCR_PREPROCESS'])
+        pp = settings.ANPR['OCR_PREPROCESS']
+        img = preprocessing.pipeline(crop, **pp)
+        if len(img.shape) == 2:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        engine = self.engine
+        reader = getattr(engine, 'reader', None)  # EasyOCR: akses semua fragmen
+        if reader is not None:
+            raw = reader.readtext(img)
+            frags = [{'text': t, 'conf': float(c)} for (_, t, c) in raw]
+            text = select_plate_fragment(frags)
+            conf = max((f['conf'] for f in frags
+                        if normalize_plate_text(f['text']) == text), default=0.0)
+            return text, conf
+        text, conf = engine.recognize(crop, preprocess=pp)
         return normalize_plate_text(text), float(conf)
 
     def render_annotated(self, image_bgr: np.ndarray, detections: list, operational: list) -> np.ndarray:

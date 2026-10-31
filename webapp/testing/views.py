@@ -217,6 +217,13 @@ def consistency_status(request, photo_id, run_id):
     })
 
 
+def _looks_like_pt_weights(f):
+    """.pt = zip archive (modern torch.save) or pickle protocol stream (legacy)."""
+    head = f.read(4)
+    f.seek(0)
+    return head[:2] == b'PK' or head[:1] == b'\x80'
+
+
 def models_page(request):
     models = YoloModel.objects.all()
     YoloModel.ensure_default()
@@ -231,6 +238,9 @@ def model_upload(request):
         messages.error(request, 'Nama model wajib diisi.')
     elif not f or not f.name.lower().endswith('.pt'):
         messages.error(request, 'File harus berformat .pt (bobot Ultralytics YOLO).')
+    elif not _looks_like_pt_weights(f):
+        messages.error(request, 'Isi file bukan bobot PyTorch yang valid (.pt = arsip zip '
+                                'atau stream pickle).')
     elif YoloModel.objects.filter(name=name).exists():
         messages.error(request, f'Nama "{name}" sudah dipakai.')
     else:

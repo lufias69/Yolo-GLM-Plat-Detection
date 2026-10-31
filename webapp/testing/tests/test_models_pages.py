@@ -25,7 +25,7 @@ class ModelsPageTest(TestCase):
     def test_upload_pt_registers_model(self):
         resp = self.client.post('/models/upload/',
                                  {'name': 'yolov8s baru',
-                                  'weights': SimpleUploadedFile('v8s.pt', b'fake-pt-bytes',
+                                  'weights': SimpleUploadedFile('v8s.pt', b'PK' + b'x'*60,
                                                                content_type='application/octet-stream')})
         self.assertEqual(resp.status_code, 302)
         m = YoloModel.objects.get(name='yolov8s baru')
@@ -38,7 +38,7 @@ class ModelsPageTest(TestCase):
 
     def test_activate_switches(self):
         a = YoloModel.ensure_default()
-        b = YoloModel.objects.create(name='b', weights=SimpleUploadedFile('b.pt', b'x'))
+        b = YoloModel.objects.create(name='b', weights=SimpleUploadedFile('b.pt', b'PK' + b'y'*60))
         self.client.post(f'/models/{b.id}/activate/')
         a.refresh_from_db(); b.refresh_from_db()
         self.assertFalse(a.is_active)
@@ -51,6 +51,27 @@ class ModelsPageTest(TestCase):
 
     def test_delete_inactive_ok(self):
         YoloModel.ensure_default()
-        b = YoloModel.objects.create(name='b', weights=SimpleUploadedFile('b.pt', b'x'))
+        b = YoloModel.objects.create(name='b', weights=SimpleUploadedFile('b.pt', b'PK' + b'y'*60))
         self.client.post(f'/models/{b.id}/delete/')
         self.assertFalse(YoloModel.objects.filter(pk=b.pk).exists())
+
+
+class UploadMagicByteTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def post_file(self, name, content):
+        return self.client.post('/models/upload/', {'name': name, 'weights':
+            SimpleUploadedFile('m.pt', content, content_type='application/octet-stream')})
+
+    def test_rejects_exe_payload_despite_pt_extension(self):
+        self.post_file('jahat1', b'MZ\x90\x00' + b'\x00' * 60)
+        self.assertFalse(YoloModel.objects.filter(name='jahat1').exists())
+
+    def test_accepts_zip_container_pt(self):
+        self.post_file('zippt', b'PK\x03\x04' + b'\x00' * 60)
+        self.assertTrue(YoloModel.objects.filter(name='zippt').exists())
+
+    def test_accepts_pickle_protocol_pt(self):
+        self.post_file('oldpt', b'\x80\x02' + b'g' * 60)
+        self.assertTrue(YoloModel.objects.filter(name='oldpt').exists())

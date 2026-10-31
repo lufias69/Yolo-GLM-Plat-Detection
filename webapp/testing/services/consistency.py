@@ -69,35 +69,43 @@ def execute(run):
                 return
             rng = np.random.default_rng(run.seed + i)
             variant = perturb(image, rng)
-            frame, dets, rotation = service.detect_oriented(variant, model=yolo)
+            # orientasi sama dengan baseline (foto mungkin butuh rotasi)
+            candidates = service.detect_oriented(variant, model=yolo,
+                                                 preferred_rotation=photo.system_result.get('rotation', 0))
             from anpr.postprocessing import normalize_plate_text  # noqa: F401
             from django.conf import settings
-            from .inference import ROTATE_FLAGS, map_box_to_original
+            from .inference import map_box_to_original
             orig_w, orig_h = image.shape[1], image.shape[0]
-            # simpan box frame (untuk OCR) sekaligus box koordinat asli (untuk IoU)
-            pairs = [(d, map_box_to_original(d['box'], rotation, orig_w, orig_h)) for d in dets]
-            pairs = [(d, ob) for d, ob in pairs
-                     if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+            best = None  # (ocr_conf, frame_d, ob, text)
+            for frame, dets, rotation in candidates:
+                operational = [d for d in dets
+                               if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+                if not operational:
+                    continue
+                target = operational[0]
+                ob = map_box_to_original(target['box'], rotation, orig_w, orig_h)
+                if baseline['box'] is not None:
+                    val = iou(ob, baseline['box'])
+                    if val < IOU_MATCH_THRESHOLD:
+                        continue
+                else:
+                    val = 1.0
+                text, ocr_conf = service.recognize_crop(frame, target['box'])
+                if best is None or ocr_conf > best[0]:
+                    best = (ocr_conf, target, ob, text, val, rotation)
             item = {'i': i, 'detected': False, 'confidence': None, 'iou': 0.0,
                     'ocr_text': '', 'same_as_baseline': False, 'same_as_gt': False,
-                    'rotation': rotation}
-            if pairs:
-                if baseline['box'] is not None:
-                    frame_d, ob = max(pairs, key=lambda t: iou(t[1], baseline['box']))
-                    best_iou = iou(ob, baseline['box'])
-                else:
-                    frame_d, ob = pairs[0]
-                    best_iou = 1.0
-                if best_iou >= IOU_MATCH_THRESHOLD:
-                    text, _ = service.recognize_crop(frame, frame_d['box'])
-                    item.update({
-                        'detected': True,
-                        'confidence': frame_d['confidence'],
-                        'iou': round(best_iou, 4),
-                        'ocr_text': text,
-                        'same_as_baseline': text == baseline['text'],
-                        'same_as_gt': bool(gt_text) and text == gt_text,
-                    })
+                    'rotation': photo.system_result.get('rotation', 0)}
+            if best is not None:
+                ocr_conf, target, ob, text, val, _ = best
+                item.update({
+                    'detected': True,
+                    'confidence': target['confidence'],
+                    'iou': round(val, 4),
+                    'ocr_text': text,
+                    'same_as_baseline': text == baseline['text'],
+                    'same_as_gt': bool(gt_text) and text == gt_text,
+                })
             results.append(item)
             if len(results) % 10 == 0:
                 run.runs = results

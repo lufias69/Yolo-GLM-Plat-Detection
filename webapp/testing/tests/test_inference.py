@@ -222,3 +222,61 @@ class MapBoxTest(SimpleTestCase):
             self.assertTrue(all(v >= 0 for v in ob))
             self.assertLessEqual(ob[2], W)
             self.assertLessEqual(ob[3], H)
+
+
+class AllOrientModel:
+    """Fake: fires a box at conf 0.9 in EVERY orientation (detector juga suka
+    plat terbalik) — orientasi benar harus dipilih lewat confidence OCR."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def __call__(self, image, verbose=False, conf=0.25):
+        self.calls += 1
+        return [FakeResult([[10, 10, 100, 50]], [0.9])]
+
+
+class ConfListEngine:
+    """Mengembalikan conf OCR berurutan sesuai orientasi yang di-OCR (0,90,180,270)."""
+
+    def __init__(self, confs):
+        self.confs = list(confs)
+        self.i = 0
+
+    def recognize(self, image, preprocess=None):
+        c = self.confs[self.i]
+        self.i += 1
+        return 'dr 1282 as', c
+
+
+class OcrConfidenceTiebreakTest(TestCase):
+    def setUp(self):
+        img = np.zeros((200, 400, 3), dtype=np.uint8)
+        fd, self.path = tempfile.mkstemp(suffix='.jpg')
+        os.close(fd)
+        cv2.imwrite(self.path, img)
+        self.addCleanup(lambda: Path(self.path).unlink(missing_ok=True))
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_picks_orientation_with_highest_ocr_confidence(self):
+        svc = InferenceService.__new__(InferenceService)
+        svc._model = AllOrientModel()
+        svc._engine = ConfListEngine([0.10, 0.95, 0.20, 0.30])  # terbaik = rotasi 90
+        inference._service = svc
+        self.addCleanup(setattr, inference, '_service', None)
+        res = inference.get_service().process_file(Path(self.path))
+        self.assertEqual(res['rotation'], 90)
+        self.assertEqual(res['detections'][0]['ocr_text'], 'DR 1282 AS')
+        self.assertEqual(res['detections'][0]['ocr_confidence'], 0.95)
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_preferred_rotation_skips_others(self):
+        svc = InferenceService.__new__(InferenceService)
+        m = AllOrientModel()
+        svc._model = m
+        svc._engine = ConfListEngine([0.9])
+        inference._service = svc
+        self.addCleanup(setattr, inference, '_service', None)
+        res = inference.get_service().process_file(Path(self.path), preferred_rotation=180)
+        self.assertEqual(res['rotation'], 180)
+        self.assertEqual(m.calls, 1)  # hanya orientasi yang diminta yang dicoba

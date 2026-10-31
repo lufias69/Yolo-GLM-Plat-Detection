@@ -27,8 +27,8 @@ class StubService:
     def detect(self, image, model=None):
         return [{'index': 0, 'box': [10, 10, 60, 40], 'confidence': self.conf}]
 
-    def detect_oriented(self, image, model=None):
-        return image, self.detect(image, model), 0
+    def detect_oriented(self, image, model=None, preferred_rotation=None):
+        return [(image, self.detect(image, model), 0)]
 
     def recognize_crop(self, image, box):
         return ('DR 1282 AS' if self.i % 4 else 'DR 1282 A5'), 0.8

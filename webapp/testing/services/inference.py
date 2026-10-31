@@ -92,22 +92,35 @@ class InferenceService:
                             'confidence': float(c)})
         return out
 
-    def detect_oriented(self, image_bgr: np.ndarray, model=None) -> tuple:
-        """Detect on all 4 cardinal orientations (0/90/180/270 cw) and keep the
-        best one. The detector also fires on upside-down plates but OCR cannot
-        read those, so we pick the orientation with the highest top confidence
-        rather than the first hit. Returns (frame, detections_in_frame, deg)."""
-        best = None
-        for deg in (0, 90, 180, 270):
+    def detect_oriented(self, image_bgr: np.ndarray, model=None,
+                        preferred_rotation=None) -> list:
+        """Detect on cardinal orientations. Returns candidate list
+        [(frame, detections, deg)] sorted best-first.
+
+        The detector also fires on upside-down plates (high det-confidence,
+        garbage OCR), so ranking by detection confidence is not enough — the
+        caller must OCR the candidates and keep the best OCR confidence.
+        preferred_rotation (0/90/180/270) tries only that orientation; used by
+        reprocess when the user already confirmed a rotated result."""
+        degrees = [preferred_rotation] if preferred_rotation is not None else [0, 90, 180, 270]
+        candidates = []
+        best_any = None
+        for deg in degrees:
             frame = image_bgr if deg == 0 else cv2.rotate(image_bgr, ROTATE_FLAGS[deg])
             dets = self.detect(frame, model=model)
-            top = dets[0]['confidence'] if dets else 0.0
-            operational = top >= settings.ANPR['CONF_OPERATIONAL']
-            cand = (operational, top, frame, dets, deg)
-            if best is None or cand[:2] > best[:2]:
-                best = cand
-        _, _, frame, dets, deg = best
-        return frame, dets, deg
+            operational = [d for d in dets if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+            top = operational[0]['confidence'] if operational else 0.0
+            if operational:
+                candidates.append((top, frame, dets, deg))
+            if best_any is None or (dets and dets[0]['confidence'] > best_any[0]):
+                best_any = (dets[0]['confidence'] if dets else 0.0, frame, dets, deg)
+        candidates.sort(key=lambda c: -c[0])
+        if candidates:
+            return [(f, d, deg) for _, f, d, deg in candidates]
+        if best_any and best_any[2]:
+            _, f, d, deg = best_any
+            return [(f, d, deg)]
+        return []
 
 
     def recognize_crop(self, image_bgr: np.ndarray, box) -> tuple:
@@ -133,34 +146,65 @@ class InferenceService:
                         0.5, color, 2)
         return out
 
-    def process_file(self, path: Path, weights_path: str = None) -> dict:
+    def process_file(self, path: Path, weights_path: str = None,
+                     preferred_rotation=None) -> dict:
         image = cv2.imread(str(path))
         if image is None:
             raise InferenceError(f'Gambar tidak dapat dibaca: {path.name}')
         h, w = image.shape[:2]
+        model = self.model_for(weights_path)
 
         t0 = time.perf_counter()
-        frame, detections, rotation = self.detect_oriented(image, model=self.model_for(weights_path))
+        candidates = self.detect_oriented(image, model=model,
+                                          preferred_rotation=preferred_rotation)
         detection_ms = (time.perf_counter() - t0) * 1000.0
 
-        operational = [d['index'] for d in detections
-                       if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
-
+        # OCR box target (conf tertinggi, operasional) tiap kandidat; orientasi
+        # dengan confidence OCR terbaik menang (detektor juga fires pada plat
+        # terbalik -> conf deteksi bukan penentu orientasi).
         t1 = time.perf_counter()
-        for d in detections:
-            if d['index'] in operational:
-                # OCR pada frame terorientasi (plat tegak), bukan frame asli
-                text, conf = self.recognize_crop(frame, d['box'])
-                d['ocr_text'] = text
-                d['ocr_confidence'] = conf
-            else:
-                d['ocr_text'] = ''
-                d['ocr_confidence'] = 0.0
+        best = None  # (ocr_conf, frame, dets, deg, target)
+        for frame, dets, deg in candidates:
+            operational = [d for d in dets
+                           if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+            if not operational:
+                continue
+            target = operational[0]
+            text, ocr_conf = self.recognize_crop(frame, target['box'])
+            if best is None or ocr_conf > best[0]:
+                best = (ocr_conf, frame, dets, deg, target, text)
+            if ocr_conf >= 0.99:
+                break  # sudah jelas terbaca, hentikan pencarian
         ocr_ms = (time.perf_counter() - t1) * 1000.0
 
-        if rotation:
-            detections = [dict(d, box=map_box_to_original(d['box'], rotation, w, h))
-                          for d in detections]
+        rotation = 0
+        if best is not None:
+            _, frame, dets, rotation, target, text = best
+            detections = []
+            for d in dets:
+                d = dict(d)
+                if d['index'] == target['index']:
+                    d['ocr_text'] = text
+                    d['ocr_confidence'] = float(best[0])
+                else:
+                    d['ocr_text'] = ''
+                    d['ocr_confidence'] = 0.0
+                d['box'] = map_box_to_original(d['box'], rotation, w, h) if rotation else d['box']
+                detections.append(d)
+            operational = [d['index'] for d in dets
+                           if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+            render_frame = frame
+        else:
+            if candidates:
+                frame, dets, rotation = candidates[0]
+            else:
+                frame, dets, rotation = image, [], 0
+            detections = [dict(d, ocr_text='', ocr_confidence=0.0,
+                               box=map_box_to_original(d['box'], rotation, w, h) if rotation else d['box'])
+                          for d in dets]
+            operational = [d['index'] for d in dets
+                           if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+            render_frame = frame
 
         rendered = self.render_annotated(image, detections, operational)
         import hashlib

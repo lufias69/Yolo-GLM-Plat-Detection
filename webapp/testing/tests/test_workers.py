@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 import shutil
 import tempfile
 from pathlib import Path
@@ -98,3 +99,23 @@ class PhotoStatusViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'processing')
+
+
+class WorkerSaveRobustnessTest(TestCase):
+    def test_final_save_failure_marks_error_not_stuck_processing(self):
+        batch = TestBatch.objects.create(name='B')
+        photo = make_photo(batch)
+        workers._process_fn = lambda path: dict(RESULT)
+        self.addCleanup(setattr, workers, '_process_fn', None)
+        real_save = Photo.save
+
+        def flaky_save(self, *a, **k):
+            if not a and 'update_fields' not in k:  # the final full save
+                raise Exception('database is locked')
+            return real_save(self, *a, **k)
+
+        with patch.object(Photo, 'save', flaky_save):
+            workers._process_photo(photo.id)
+        fresh = Photo.objects.get(pk=photo.id)
+        self.assertEqual(fresh.status, 'error')
+        self.assertIn('database is locked', fresh.error_message)

@@ -84,8 +84,21 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        # Concurrent writers: the processing worker + consistency jobs are threads.
+        'OPTIONS': {'timeout': 20},
     }
 }
+
+
+def _enable_wal(sender, connection, **kwargs):
+    if connection.vendor == 'sqlite':
+        with connection.cursor() as cursor:
+            cursor.execute('PRAGMA journal_mode=WAL;')
+
+
+from django.db.backends.signals import connection_created  # noqa: E402
+
+connection_created.connect(_enable_wal)
 
 
 # Password validation

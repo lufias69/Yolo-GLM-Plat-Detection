@@ -1,5 +1,8 @@
 import os
 import tempfile
+import threading
+import time
+import unittest
 from pathlib import Path
 
 import cv2
@@ -109,3 +112,35 @@ class ProcessFileTest(TestCase):
                 inference.get_service().process_file(Path(junk))
         finally:
             Path(junk).unlink(missing_ok=True)
+
+
+class ThreadSafetyTest(unittest.TestCase):
+    def test_get_service_singleton_thread_safe(self):
+        original = inference.InferenceService
+        created = []
+
+        class Counting(original):
+            def __init__(self):
+                super().__init__()
+                time.sleep(0.01)
+                created.append(1)
+
+        inference.InferenceService = Counting
+        old = inference._service
+        inference._service = None
+        services = []
+
+        def grab():
+            services.append(inference.get_service())
+
+        threads = [threading.Thread(target=grab) for _ in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        try:
+            self.assertEqual(len(created), 1)
+            self.assertTrue(all(s is services[0] for s in services))
+        finally:
+            inference.InferenceService = original
+            inference._service = old

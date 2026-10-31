@@ -61,7 +61,16 @@ def _process_photo(photo_id):
     if annotated:
         # the service already wrote the file under MEDIA_ROOT; just record the path
         photo.annotated_image.name = annotated
-    photo.save()
+    try:
+        photo.save()
+    except Exception as exc:
+        # never strand the photo in 'processing' if the final write loses a lock race
+        photo.status = 'error'
+        photo.error_message = f'Gagal menyimpan hasil: {exc}'
+        try:
+            photo.save(update_fields=['status', 'error_message'])
+        except Exception:
+            pass
 
 
 def _ensure_worker():

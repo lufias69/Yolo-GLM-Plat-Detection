@@ -6,6 +6,7 @@ Config matches the research scripts exactly (spec 7.6):
 EasyOCR on CPU, YOLO stored at conf=0.01, operational threshold 0.25,
 CLAHE+upscale OCR preprocessing.
 """
+import threading
 import time
 from pathlib import Path
 
@@ -22,19 +23,24 @@ class InferenceService:
     def __init__(self):
         self._model = None
         self._engine = None
+        self._load_lock = threading.Lock()
 
     @property
     def model(self):
         if self._model is None:
-            from ultralytics import YOLO
-            self._model = YOLO(settings.ANPR['WEIGHTS'])
+            with self._load_lock:
+                if self._model is None:
+                    from ultralytics import YOLO
+                    self._model = YOLO(settings.ANPR['WEIGHTS'])
         return self._model
 
     @property
     def engine(self):
         if self._engine is None:
-            from anpr.ocr_engines import get_engine
-            self._engine = get_engine(settings.ANPR['OCR_ENGINE'], gpu=settings.ANPR['OCR_GPU'])
+            with self._load_lock:
+                if self._engine is None:
+                    from anpr.ocr_engines import get_engine
+                    self._engine = get_engine(settings.ANPR['OCR_ENGINE'], gpu=settings.ANPR['OCR_GPU'])
         return self._engine
 
     def detect(self, image_bgr: np.ndarray) -> list:
@@ -101,7 +107,8 @@ class InferenceService:
         rendered = self.render_annotated(image, detections, operational)
         import hashlib
         digest = hashlib.md5(str(path).encode()).hexdigest()[:10]
-        rel = f'annotated/{int(time.time() * 1000)}_{digest}.jpg'
+        # stable name: reprocess overwrites instead of leaking files per run
+        rel = f'annotated/{digest}.jpg'
         out_path = Path(settings.MEDIA_ROOT) / rel
         out_path.parent.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(out_path), rendered)
@@ -122,10 +129,13 @@ class InferenceService:
 
 
 _service = None
+_service_lock = threading.Lock()
 
 
 def get_service() -> InferenceService:
     global _service
     if _service is None:
-        _service = InferenceService()
+        with _service_lock:
+            if _service is None:
+                _service = InferenceService()
     return _service

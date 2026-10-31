@@ -5,9 +5,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Annotation, Photo, TestBatch
+from .models import Annotation, ConsistencyRun, Photo, TestBatch
 from .forms import AnnotationForm
-from .services import export, metrics, workers
+from .services import consistency, export, metrics, workers
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
 
@@ -157,3 +157,58 @@ def batch_export_xlsx(request, batch_id):
                         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     resp['Content-Disposition'] = f'attachment; filename="batch_{batch_id}.xlsx"'
     return resp
+
+
+def _consistency_eligible(photo):
+    ann = getattr(photo, 'annotation', None)
+    return (photo.status == 'done' and ann is not None and ann.is_complete()
+            and not ann.stale)
+
+
+def photo_consistency(request, photo_id):
+    photo = get_object_or_404(Photo.objects.select_related('annotation', 'batch'), pk=photo_id)
+    runs = photo.consistency_runs.all()[:10]
+    return render(request, 'testing/consistency.html', {
+        'photo': photo, 'batch': photo.batch, 'runs': runs,
+        'eligible': _consistency_eligible(photo),
+        'baseline': consistency.baseline_of(photo),
+    })
+
+
+@require_POST
+def consistency_start(request, photo_id):
+    photo = get_object_or_404(Photo.objects.select_related('annotation'), pk=photo_id)
+    if not _consistency_eligible(photo):
+        messages.error(request, 'Uji konsistensi butuh foto selesai diproses dengan penilaian lengkap (tidak stale).')
+        return redirect('testing:photo_consistency', photo_id=photo.id)
+    try:
+        n = max(1, min(500, int(request.POST.get('n', 100))))
+    except ValueError:
+        n = 100
+    try:
+        seed = int(request.POST.get('seed', 42))
+    except ValueError:
+        seed = 42
+    run = ConsistencyRun.objects.create(photo=photo, n=n, seed=seed)
+    consistency.start_run(run)
+    messages.success(request, f'Uji konsistensi n={n} dimulai (seed {seed}).')
+    return redirect('testing:photo_consistency', photo_id=photo.id)
+
+
+@require_POST
+def consistency_cancel(request, photo_id, run_id):
+    run = get_object_or_404(ConsistencyRun, pk=run_id, photo_id=photo_id)
+    if run.status in ('queued', 'running'):
+        run.cancel_requested = True
+        run.save(update_fields=['cancel_requested'])
+    return JsonResponse({'status': run.status})
+
+
+def consistency_status(request, photo_id, run_id):
+    run = get_object_or_404(ConsistencyRun, pk=run_id, photo_id=photo_id)
+    return JsonResponse({
+        'status': run.status,
+        'done_iterations': len(run.runs),
+        'of': run.n,
+        'summary': run.summary if run.status == 'done' else None,
+    })

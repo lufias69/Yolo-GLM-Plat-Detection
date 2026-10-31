@@ -28,10 +28,13 @@
       <img src="{{ photo.annotated_image.url }}" class="img-fluid border rounded shadow-sm" alt="{{ photo.original_name }}">
     {% endif %}
     <div class="mt-3">
-      <form method="post" action="{% url 'testing:reprocess_photo' photo.id %}">
-        {% csrf_token %}
-        <button class="btn btn-sm btn-outline-secondary">Proses ulang foto ini</button>
-      </form>
+      <div class="d-flex gap-2">
+        <form method="post" action="{% url 'testing:reprocess_photo' photo.id %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-secondary">Proses ulang foto ini</button>
+        </form>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'testing:photo_consistency' photo.id %}">Uji konsistensi…</a>
+      </div>
     </div>
 
     <div class="card mt-3">

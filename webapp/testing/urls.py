@@ -14,6 +14,10 @@ urlpatterns = [
     path('batch/<int:batch_id>/next-unannotated/', views.next_unannotated, name='next_unannotated'),
     path('photo/<int:photo_id>/', views.photo_detail, name='photo_detail'),
     path('photo/<int:photo_id>/annotate/', views.annotate, name='annotate'),
+    path('photo/<int:photo_id>/consistency/', views.photo_consistency, name='photo_consistency'),
+    path('photo/<int:photo_id>/consistency/start/', views.consistency_start, name='consistency_start'),
+    path('photo/<int:photo_id>/consistency/<int:run_id>/cancel/', views.consistency_cancel, name='consistency_cancel'),
+    path('photo/<int:photo_id>/consistency/<int:run_id>/status/', views.consistency_status, name='consistency_status'),
     path('photo/<int:photo_id>/reprocess/', views.reprocess_photo, name='reprocess_photo'),
     path('api/photo/<int:photo_id>/status/', views.photo_status, name='photo_status'),
 ]

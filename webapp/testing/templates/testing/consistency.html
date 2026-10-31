@@ -1,0 +1,104 @@
+{% extends 'testing/base.html' %}
+{% load report_extras %}
+
+{% block title %}Konsistensi: {{ photo.original_name }}{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<nav class="breadcrumb small">
+  <a class="breadcrumb-item" href="{% url 'testing:batch_detail' batch.id %}">{{ batch.name }}</a>
+  <a class="breadcrumb-item" href="{% url 'testing:photo_detail' photo.id %}">{{ photo.original_name }}</a>
+  <span class="breadcrumb-item active">Uji konsistensi</span>
+</nav>
+
+<h1 class="h4">Uji konsistensi — {{ photo.original_name }}</h1>
+
+{% if eligible %}
+  <div class="card shadow-sm mb-4"><div class="card-body">
+    <p class="small text-muted mb-2">Baseline: box <code>{{ baseline.box }}</code> conf {{ baseline.confidence|num }} — teks <code>{{ baseline.text }}</code></p>
+    <form method="post" action="{% url 'testing:consistency_start' photo.id %}" class="d-flex gap-2 align-items-end">
+      {% csrf_token %}
+      <div>
+        <label class="form-label small mb-1">Jumlah run (N)</label>
+        <input type="number" name="n" value="100" min="1" max="500" class="form-control form-control-sm" style="width:8rem">
+      </div>
+      <div>
+        <label class="form-label small mb-1">Seed</label>
+        <input type="number" name="seed" value="42" class="form-control form-control-sm" style="width:8rem">
+      </div>
+      <button class="btn btn-primary btn-sm">Mulai uji konsistensi</button>
+    </form>
+  </div></div>
+{% else %}
+  <div class="alert alert-secondary">Uji konsistensi baru bisa dijalankan bila foto sudah <strong>selesai diproses</strong> dan memiliki <strong>penilaian lengkap yang tidak stale</strong>.</div>
+{% endif %}
+
+{% for run in runs %}
+  <div class="card shadow-sm mb-3" data-run="{{ run.id }}" data-status="{{ run.status }}"
+       data-url="{% url 'testing:consistency_status' photo.id run.id %}">
+    <div class="card-header d-flex justify-content-between">
+      <span>Run n={{ run.n }} seed={{ run.seed }} — <strong class="run-status">{{ run.get_status_display }}</strong></span>
+      {% if run.status == 'queued' or run.status == 'running' %}
+        <form method="post" action="{% url 'testing:consistency_cancel' photo.id run.id %}">{% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger">Batalkan</button></form>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <div class="progress mb-3"><div class="progress-bar run-bar" style="width:0%"></div></div>
+      <div class="run-summary">
+        {% if run.status == 'done' %}
+          <p class="mb-1">
+            Terdeteksi pada <strong>{{ run.summary.detected_x_of_n }}</strong> run.
+            Teks OCR sama dengan baseline: <strong>{{ run.summary.same_as_baseline_x_of_n }}</strong>.
+            Teks OCR sama dengan ground truth: <strong>{{ run.summary.same_as_gt_x_of_n }}</strong>.
+            Confidence mean {{ run.summary.conf_mean|num }} (std {{ run.summary.conf_std|num }}).
+          </p>
+            {% endif %}
+      </div>
+      <details>
+        <summary class="small text-muted">Detail per iterasi</summary>
+        <table class="table table-sm small mb-0 run-table">
+          <thead><tr><th>#</th><th>Deteksi</th><th>Conf</th><th>IoU</th><th>Teks</th><th>= baseline</th><th>= GT</th></tr></thead>
+          <tbody>
+          {% for r in run.runs %}
+            <tr><td>{{ r.i }}</td><td>{{ r.detected|yesno:'ya,tidak' }}</td>
+                <td>{{ r.confidence|num }}</td><td>{{ r.iou|num }}</td>
+                <td>{{ r.ocr_text }}</td><td>{{ r.same_as_baseline|yesno:'=,' }}</td>
+                <td>{{ r.same_as_gt|yesno:'=,' }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </details>
+    </div>
+  </div>
+{% empty %}
+  <p class="text-muted">Belum ada uji konsistensi untuk foto ini.</p>
+{% endfor %}
+
+<script>
+(function () {
+  document.querySelectorAll('[data-status="queued"], [data-status="running"]').forEach(card => {
+    const poll = async () => {
+      try {
+        const resp = await fetch(card.dataset.url);
+        const data = await resp.json();
+        card.querySelector('.run-status').textContent = data.status;
+        card.querySelector('.run-bar').style.width =
+          Math.round(100 * data.done_iterations / data.of) + '%';
+        if (data.status === 'queued' || data.status === 'running') {
+          setTimeout(poll, 3000);
+        } else {
+          location.reload();
+        }
+      } catch (e) { setTimeout(poll, 3000); }
+    };
+    setTimeout(poll, 3000);
+  });
+})();
+</script>
+{% endblock %}

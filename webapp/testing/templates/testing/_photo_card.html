@@ -1,0 +1,42 @@
+<div class="col">
+  <div class="card shadow-sm h-100">
+    <div class="position-relative">
+      {% if photo.annotated_image %}
+        <img src="{{ photo.annotated_image.url }}" class="card-img-top" alt="{{ photo.original_name }}" style="height:140px;object-fit:cover;">
+      {% elif photo.image %}
+        <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.original_name }}" style="height:140px;object-fit:cover;">
+      {% else %}
+        <div class="bg-secondary" style="height:140px;"></div>
+      {% endif %}
+      <span class="position-absolute top-0 start-0 badge bg-{% if photo.status == 'done' %}success{% elif photo.status == 'error' %}danger{% else %}warning text-dark{% endif %}">{{ photo.get_status_display }}</span>
+    </div>
+    <div class="card-body p-2">
+      <div class="small text-truncate mb-1" title="{{ photo.original_name }}">{{ photo.original_name }}</div>
+      {% if photo.status == 'done' %}
+        {% with ops=photo.operational_detections|length %}
+          {% if ops > 1 %}
+            <span class="badge bg-warning text-dark mb-1">&#9888; {{ ops }} deteksi</span>
+          {% endif %}
+        {% endwith %}
+        {% if photo.annotation %}
+          {% if photo.annotation.stale %}
+            <span class="badge bg-info text-dark mb-1">Penilaian STALE</span>
+          {% else %}
+            <span class="badge bg-primary mb-1">Dinilai</span>
+          {% endif %}
+        {% else %}
+          <span class="badge bg-secondary mb-1">Belum dinilai</span>
+        {% endif %}
+        <a class="btn btn-sm btn-outline-dark w-100" href="{% url 'testing:photo_detail' photo.id %}">Nilai</a>
+      {% elif photo.status == 'error' %}
+        <div class="small text-danger text-truncate mb-1" title="{{ photo.error_message }}">{{ photo.error_message|truncatechars:40 }}</div>
+      {% endif %}
+      {% if photo.status == 'done' or photo.status == 'error' %}
+        <form method="post" action="{% url 'testing:reprocess_photo' photo.id %}" class="mt-1">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-link p-0">Proses ulang</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>

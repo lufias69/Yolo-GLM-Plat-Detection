@@ -1,0 +1,70 @@
+{% extends 'testing/base.html' %}
+
+{% block title %}Batch: {{ batch.name }}{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-0">{{ batch.name }}</h1>
+    <span class="text-muted small">{{ batch.description }}</span>
+  </div>
+  <a class="btn btn-outline-primary btn-sm" href="{% url 'testing:home' %}">&larr; Semua batch</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="post" action="{% url 'testing:upload_photos' batch.id %}" enctype="multipart/form-data" id="upload-form">
+      {% csrf_token %}
+      <div class="border border-2 border-dashed rounded p-4 text-center" id="dropzone">
+        <p class="mb-2 text-muted">Tarik foto ke sini, atau klik untuk pilih file (jpg/png/webp/bmp)</p>
+        <input type="file" name="files" id="id_files" multiple accept=".jpg,.jpeg,.png,.webp,.bmp" class="form-control">
+      </div>
+      <button class="btn btn-primary mt-3" type="submit">Unggah &amp; proses</button>
+    </form>
+  </div>
+</div>
+
+<div class="row row-cols-2 row-cols-md-4 g-3">
+  {% for photo in photos %}
+    {% include 'testing/_photo_card.html' %}
+  {% empty %}
+    <div class="col-12"><div class="alert alert-secondary">Belum ada foto di batch ini.</div></div>
+  {% endfor %}
+</div>
+
+{{ pending_ids|json_script:"pending-photos" }}
+<script>
+(function () {
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('id_files');
+  if (dz && input) {
+    ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('border-success'); }));
+    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('border-success'); }));
+    dz.addEventListener('drop', e => { input.files = e.dataTransfer.files; });
+  }
+
+  const pending = JSON.parse(document.getElementById('pending-photos').textContent || '[]');
+  if (pending.length) {
+    const check = async () => {
+      let stillPending = 0;
+      for (const id of pending) {
+        try {
+          const r = await fetch('/api/photo/' + id + '/status/');
+          const d = await r.json();
+          if (d.status === 'queued' || d.status === 'processing') stillPending++;
+        } catch (e) { /* ignore */ }
+      }
+      if (stillPending === 0) { location.reload(); }
+      else { setTimeout(check, 2000); }
+    };
+    setTimeout(check, 2000);
+  }
+})();
+</script>
+{% endblock %}

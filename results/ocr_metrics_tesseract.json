@@ -1,0 +1,50 @@
+[
+ {
+  "engine": "tesseract",
+  "preprocess": {
+   "use_clahe": false,
+   "use_upscale": false,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.01282051282051282,
+  "cer_mean": 1.078669371938603
+ },
+ {
+  "engine": "tesseract",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": false,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.00641025641025641,
+  "cer_mean": 1.101437202398741
+ },
+ {
+  "engine": "tesseract",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": true,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.01282051282051282,
+  "cer_mean": 1.0917293888447734
+ },
+ {
+  "engine": "tesseract",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": true,
+   "use_binarize": true,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.01282051282051282,
+  "cer_mean": 1.1593661502315347
+ }
+]

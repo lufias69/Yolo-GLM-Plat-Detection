@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -8,6 +9,7 @@ from django.views.decorators.http import require_POST
 from .models import Annotation, ConsistencyRun, Photo, TestBatch, YoloModel
 from .forms import AnnotationForm
 from .services import consistency, export, metrics, workers
+from .services.inference import get_service  # used by quick_test
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
 
@@ -270,3 +272,49 @@ def model_delete(request, model_id):
         m.delete()
         messages.success(request, f'Model "{m.name}" dihapus.')
     return redirect('testing:models')
+
+
+QUICKTEST_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
+
+
+def quick_test(request):
+    """Uji cepat satu gambar terhadap model aktif. Tidak disimpan ke DB/batch,
+    tidak masuk penilaian & laporan. Gambar hasil inference di-embed (base64),
+    file sementara dibersihkan."""
+    import base64
+    import os
+    import tempfile
+    from pathlib import Path
+
+    from .services.inference import InferenceError
+
+    result = None
+    error = None
+    if request.method == 'POST':
+        f = request.FILES.get('image')
+        ext = f.name.rsplit('.', 1)[-1].lower() if f and '.' in f.name else ''
+        if not f or ext not in QUICKTEST_EXTENSIONS:
+            error = 'Unggah satu gambar (jpg/jpeg/png/webp/bmp).'
+        else:
+            fd, tmp_path = tempfile.mkstemp(suffix=f'.{ext}')
+            os.close(fd)
+            try:
+                with open(tmp_path, 'wb') as out:
+                    for chunk in f.chunks():
+                        out.write(chunk)
+                model = YoloModel.objects.filter(is_active=True).first() or YoloModel.ensure_default()
+                weights = model.effective_path()
+                try:
+                    result = get_service().process_file(Path(tmp_path), weights_path=weights)
+                    result['model_name'] = model.name
+                    ann_path = os.path.join(str(settings.MEDIA_ROOT), result['annotated_image'])
+                    if os.path.exists(ann_path):
+                        with open(ann_path, 'rb') as af:
+                            result['annotated_b64'] = base64.b64encode(af.read()).decode()
+                        os.remove(ann_path)
+                except InferenceError as exc:
+                    error = str(exc)
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+    return render(request, 'testing/quicktest.html', {'result': result, 'error': error})

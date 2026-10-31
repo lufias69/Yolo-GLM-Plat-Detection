@@ -29,6 +29,12 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
    100) dengan augmentasi acak ringan per run; hasilnya: "terdeteksi X dari N run",
    "teks sama dengan baseline Y dari N", "teks sama dengan GT Z dari N" + sebaran.
 
+## Uji cepat (`/uji-cepat/`)
+
+Satu gambar → inference langsung dengan model aktif; hasil (kotak + OCR + latensi)
+tampil di halaman dan **tidak** masuk batch/penilaian/laporan. Untuk cek cepat foto
+sebelum decidesetujuuji seri.
+
 ## Model YOLO ganda (halaman /models/)
 
 Upload file `.pt` (bobot Ultralytics YOLO hasil training), aktifkan satu model.

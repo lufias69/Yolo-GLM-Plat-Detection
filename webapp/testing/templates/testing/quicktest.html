@@ -1,0 +1,62 @@
+{% extends 'testing/base.html' %}
+
+{% block title %}Uji cepat{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-1">Uji cepat satu gambar</h1>
+<p class="small text-muted mb-3">Menjalankan model YOLO <strong>aktif</strong> + OCR pada satu gambar — hanya untuk cek cepat.
+  Tidak disimpan ke batch, tidak masuk penilaian/laporan.</p>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Gambar</label>
+            <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp,.bmp" required>
+          </div>
+          <button class="btn btn-primary w-100">Uji sekarang</button>
+        </form>
+        {% if error %}<div class="alert alert-danger mt-3 mb-0">{{ error }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    {% if result %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between">
+          <span>Hasil — model <strong>{{ result.model_name }}</strong></span>
+          <span class="small text-muted">{{ result.latency.total_ms }} ms</span>
+        </div>
+        <div class="card-body">
+          {% if result.annotated_b64 %}
+            <img src="data:image/jpeg;base64,{{ result.annotated_b64 }}" class="img-fluid border rounded">
+          {% endif %}
+        </div>
+      </div>
+      <div class="card shadow-sm">
+        <div class="card-header">Deteksi ({{ result.detections|length }} box disimpan, {{ result.operational_boxes|length }} operasional)</div>
+        <table class="table table-sm mb-0">
+          <thead><tr><th>#</th><th>Confidence</th><th>Teks OCR</th><th>OCR conf</th><th>Box</th></tr></thead>
+          <tbody>
+          {% for d in result.detections %}
+            <tr class="{% if d.index in result.operational_boxes %}table-success{% else %}text-muted{% endif %}">
+              <td>{{ d.index }}</td>
+              <td>{{ d.confidence|floatformat:3 }}</td>
+              <td><code>{{ d.ocr_text|default:'—' }}</code></td>
+              <td>{{ d.ocr_confidence|floatformat:2 }}</td>
+              <td class="small">[{{ d.box|join:', ' }}]</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-muted">Tidak ada deteksi (conf ≥ 0,01).</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -6,6 +6,7 @@ app_name = 'testing'
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('uji-cepat/', views.quick_test, name='quick_test'),
     path('models/', views.models_page, name='models'),
     path('models/upload/', views.model_upload, name='model_upload'),
     path('models/<int:model_id>/activate/', views.model_activate, name='model_activate'),

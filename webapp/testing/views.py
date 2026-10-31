@@ -181,7 +181,7 @@ def photo_consistency(request, photo_id):
 def consistency_start(request, photo_id):
     photo = get_object_or_404(Photo.objects.select_related('annotation'), pk=photo_id)
     if not _consistency_eligible(photo):
-        messages.error(request, 'Uji konsistensi butuh foto selesai diproses dengan penilaian lengkap (tidak stale).')
+        messages.error(request, 'Uji konsistensi butuh foto selesai diproses, penilaian lengkap (tidak stale), dan minimal satu deteksi sebagai baseline.')
         return redirect('testing:photo_consistency', photo_id=photo.id)
     try:
         n = max(1, min(500, int(request.POST.get('n', 100))))

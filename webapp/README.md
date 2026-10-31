@@ -24,7 +24,8 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
    pilih box target lebih dulu.
 4. "Laporan batch": accuracy/precision/recall/F1, confusion matrix, AUC-ROC,
    exact match, char accuracy, CER, latensi; export CSV/Excel.
-5. "Uji konsistensi…" (hanya untuk foto yang sudah dinilai): N inferensi (default
+5. "Uji konsistensi…" (hanya untuk foto yang sudah dinilai DAN minimal terdeteksi
+   sekali di threshold operasional — baseline box dibutuhkan): N inferensi (default
    100) dengan augmentasi acak ringan per run; hasilnya: "terdeteksi X dari N run",
    "teks sama dengan baseline Y dari N", "teks sama dengan GT Z dari N" + sebaran.
 

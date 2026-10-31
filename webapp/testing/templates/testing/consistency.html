@@ -35,7 +35,7 @@
     </form>
   </div></div>
 {% else %}
-  <div class="alert alert-secondary">Uji konsistensi baru bisa dijalankan bila foto sudah <strong>selesai diproses</strong> dan memiliki <strong>penilaian lengkap yang tidak stale</strong>.</div>
+  <div class="alert alert-secondary">Uji konsistensi baru bisa dijalankan bila foto sudah <strong>selesai diproses</strong>, memiliki <strong>penilaian lengkap yang tidak stale</strong>, dan sistem <strong>pernah mendeteksi plat</strong> pada foto ini (dibutuhkan sebagai baseline). Foto yang tidak terdeteksi tidak punya baseline untuk dibandingkan.</div>
 {% endif %}
 
 {% for run in runs %}

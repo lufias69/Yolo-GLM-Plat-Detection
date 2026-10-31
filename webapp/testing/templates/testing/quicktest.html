@@ -28,13 +28,6 @@
   .qt-btn[disabled] { background: #5b6b7f; cursor: wait; }
   .qt-error { margin-top: 1rem; background: #fdf3f2; border: 1px solid #f0c4bd; color: #8a2b1f;
               border-radius: 10px; padding: .7rem .9rem; font-size: .88rem; }
-  /* pelat — satu-satunya elemen mencolok */
-  .qt-plate { display: inline-flex; align-items: center; gap: .55rem; background: #fff;
-              border: 2px solid #0b1e33; border-radius: 8px; padding: .5rem 1.1rem; margin: .2rem 0 1rem;
-              box-shadow: 0 2px 10px rgba(11,30,51,.12); }
-  .qt-plate .region { font: 700 .7rem/1 ui-monospace, Consolas, monospace; color: #fff; background: #0b1e33;
-                      border-radius: 4px; padding: .35rem .45rem; letter-spacing: .04em; }
-  .qt-plate .num { font: 700 1.5rem/1 ui-monospace, Consolas, monospace; color: #0b1e33; letter-spacing: .06em; }
   .qt-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
   .qt-chip { background: #eef3fa; border: 1px solid #d9e2ee; border-radius: 8px; padding: .35rem .7rem;
              font-size: .8rem; color: #0b1e33; }
@@ -106,12 +99,6 @@
               ocr <strong>{{ result.ocr_engine|default:'easyocr' }}</strong> ·
               {{ result.latency.total_ms }} ms</span>
           </div>
-
-          {% if result.detections and result.operational_boxes %}
-            <p class="small text-muted" style="margin:.2rem 0 .8rem">
-              Engine utama <strong>{{ result.ocr_engine|default:'easyocr' }}</strong> membaca:
-              <code>{{ result.detections.0.ocr_text|default:'—' }}</code></p>
-          {% endif %}
 
           <div class="qt-chips">
             <span class="qt-chip {% if result.operational_boxes %}ok{% else %}warn{% endif %}">

@@ -3,60 +3,202 @@
 {% block title %}Uji cepat{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-1">Uji cepat satu gambar</h1>
-<p class="small text-muted mb-3">Menjalankan model YOLO <strong>aktif</strong> + OCR pada satu gambar — hanya untuk cek cepat.
-  Tidak disimpan ke batch, tidak masuk penilaian/laporan.</p>
+<style>
+  .qt-wrap { max-width: 1120px; margin: 0 auto; }
+  .qt-hero { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem; margin-bottom: 1.4rem; }
+  .qt-hero h1 { font-weight: 600; letter-spacing: -.015em; color: #0b1e33; font-size: 1.55rem; margin: 0; }
+  .qt-hero p { color: #5b6b7f; margin: .15rem 0 0; font-size: .92rem; max-width: 46ch; }
+  .qt-pill { background: #eef3fa; border: 1px solid #d9e2ee; color: #0b1e33; font-size: .78rem;
+              padding: .3rem .7rem; border-radius: 999px; margin-left: auto; }
+  .qt-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1.1rem; }
+  @media (max-width: 900px) { .qt-grid { grid-template-columns: 1fr; } }
+  .qt-card { background: #fff; border: 1px solid #d9e2ee; border-radius: 14px; padding: 1.15rem;
+             box-shadow: 0 1px 3px rgba(11, 30, 51, .06); }
+  .qt-drop { border: 2px dashed #b9c8da; border-radius: 12px; padding: 2.2rem 1rem; text-align: center;
+             color: #5b6b7f; cursor: pointer; transition: border-color .15s, background .15s; }
+  .qt-drop.over, .qt-drop:hover { border-color: #0b1e33; background: #f6f9fd; color: #0b1e33; }
+  .qt-drop strong { font-weight: 600; }
+  .qt-preview { margin-top: .9rem; display: none; align-items: center; gap: .8rem; }
+  .qt-preview img { width: 88px; height: 88px; object-fit: cover; border-radius: 10px; border: 1px solid #d9e2ee; }
+  .qt-preview .meta { font-size: .85rem; color: #5b6b7f; }
+  .qt-btn { width: 100%; margin-top: 1rem; background: #0b1e33; color: #fff; border: 0; border-radius: 10px;
+            padding: .75rem 1rem; font-weight: 600; letter-spacing: .01em; cursor: pointer; transition: background .15s; }
+  .qt-btn:hover { background: #16324f; }
+  .qt-btn:focus-visible, .qt-drop:focus-visible { outline: 2px solid #1e4fd8; outline-offset: 2px; }
+  .qt-btn[disabled] { background: #5b6b7f; cursor: wait; }
+  .qt-error { margin-top: 1rem; background: #fdf3f2; border: 1px solid #f0c4bd; color: #8a2b1f;
+              border-radius: 10px; padding: .7rem .9rem; font-size: .88rem; }
+  /* pelat — satu-satunya elemen mencolok */
+  .qt-plate { display: inline-flex; align-items: center; gap: .55rem; background: #fff;
+              border: 2px solid #0b1e33; border-radius: 8px; padding: .5rem 1.1rem; margin: .2rem 0 1rem;
+              box-shadow: 0 2px 10px rgba(11,30,51,.12); }
+  .qt-plate .region { font: 700 .7rem/1 ui-monospace, Consolas, monospace; color: #fff; background: #0b1e33;
+                      border-radius: 4px; padding: .35rem .45rem; letter-spacing: .04em; }
+  .qt-plate .num { font: 700 1.5rem/1 ui-monospace, Consolas, monospace; color: #0b1e33; letter-spacing: .06em; }
+  .qt-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .qt-chip { background: #eef3fa; border: 1px solid #d9e2ee; border-radius: 8px; padding: .35rem .7rem;
+             font-size: .8rem; color: #0b1e33; }
+  .qt-chip b { font-weight: 600; font-family: ui-monospace, Consolas, monospace; }
+  .qt-chip.ok { background: #ecf8f2; border-color: #bfe5cf; color: #14563b; }
+  .qt-chip.warn { background: #fdf7ec; border-color: #ecd9b0; color: #7c4a08; }
+  .qt-sub { font-weight: 600; font-size: .95rem; color: #0b1e33; margin: 1.1rem 0 .6rem; }
+  .qt-drow { display: grid; grid-template-columns: auto 1fr; gap: .15rem .8rem; padding: .55rem 0;
+             border-bottom: 1px solid #e8eef6; font-size: .86rem; }
+  .qt-drow:last-child { border-bottom: 0; }
+  .qt-badge-idx { font: 700 .75rem/1 ui-monospace, Consolas, monospace; color: #5b6b7f;
+                  background: #eef3fa; border-radius: 6px; padding: .35rem .45rem; height: fit-content; }
+  .qt-bar { height: 6px; background: #e8eef6; border-radius: 4px; overflow: hidden; margin-top: .35rem; }
+  .qt-bar i { display: block; height: 100%; border-radius: 4px; }
+  .qt-bar i.op { background: #0e9f6e; }
+  .qt-bar i.sub { background: #b9c8da; }
+  .qt-drow .line1 { display: flex; justify-content: space-between; gap: .6rem; }
+  .qt-drow .conf { font-family: ui-monospace, Consolas, monospace; color: #0b1e33; }
+  .qt-drow .ocr { color: #5b6b7f; font-size: .82rem; }
+  .qt-drow .ocr code { background: #eef3fa; border-radius: 4px; padding: .05rem .35rem; color: #0b1e33; }
+  .qt-drow.below { opacity: .65; }
+  .qt-empty { border: 2px dashed #d9e2ee; border-radius: 14px; height: 100%; min-height: 260px;
+              display: flex; flex-direction: column; align-items: center; justify-content: center;
+              gap: .6rem; color: #5b6b7f; text-align: center; padding: 1.5rem; }
+  .qt-empty svg { opacity: .5; }
+  .qt-result-img { width: 100%; border-radius: 10px; border: 1px solid #d9e2ee; display: block; }
+  .qt-head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .qt-head-row .model { font-size: .82rem; color: #5b6b7f; }
+  .qt-head-row .model strong { color: #0b1e33; font-weight: 600; }
+  @media (prefers-reduced-motion: reduce) { .qt-drop, .qt-btn { transition: none; } }
+</style>
 
-<div class="row g-4">
-  <div class="col-md-5">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label">Gambar</label>
-            <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp,.bmp" required>
+<div class="qt-wrap">
+  <div class="qt-hero">
+    <div>
+      <h1>Uji cepat satu gambar</h1>
+      <p>Jalankan model YOLO aktif + OCR pada satu gambar dan lihat hasilnya di tempat.</p>
+    </div>
+    <span class="qt-pill">Tidak masuk batch &amp; laporan</span>
+  </div>
+
+  <div class="qt-grid">
+    <div class="qt-card">
+      <form method="post" enctype="multipart/form-data" id="qt-form">
+        {% csrf_token %}
+        <div class="qt-drop" id="qt-drop" role="button" tabindex="0" aria-label="Pilih gambar untuk diuji">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 12h8M8 9h5"/>
+          </svg>
+          <div style="margin-top:.6rem"><strong>Taruh gambar di sini</strong><br>
+            atau klik untuk memilih — jpg · png · webp · bmp</div>
+        </div>
+        <input type="file" name="image" id="qt-file" accept=".jpg,.jpeg,.png,.webp,.bmp" style="display:none">
+        <div class="qt-preview" id="qt-preview">
+          <img id="qt-thumb" alt="Pratinjau gambar">
+          <div class="meta" id="qt-meta"></div>
+        </div>
+        <button class="qt-btn" id="qt-submit" type="submit">Uji sekarang</button>
+      </form>
+      {% if error %}<div class="qt-error">{{ error }}</div>{% endif %}
+    </div>
+
+    <div>
+      {% if result %}
+        <div class="qt-card">
+          <div class="qt-head-row">
+            <span class="qt-sub" style="margin:0">Hasil inference</span>
+            <span class="model">model <strong>{{ result.model_name }}</strong> ·
+              {{ result.latency.total_ms }} ms</span>
           </div>
-          <button class="btn btn-primary w-100">Uji sekarang</button>
-        </form>
-        {% if error %}<div class="alert alert-danger mt-3 mb-0">{{ error }}</div>{% endif %}
-      </div>
+
+          {% if result.detections and result.operational_boxes %}
+            {% with first=result.detections.0 %}
+              <div class="qt-plate">
+                <span class="region">{{ first.ocr_text|slice:":2"|default:'—' }}</span>
+                <span class="num">{{ first.ocr_text|slice:"2:"|default:'plat tidak terbaca' }}</span>
+              </div>
+            {% endwith %}
+          {% endif %}
+
+          <div class="qt-chips">
+            <span class="qt-chip {% if result.operational_boxes %}ok{% else %}warn{% endif %}">
+              {% if result.operational_boxes %}Plat terdeteksi{% else %}Tidak terdeteksi{% endif %}
+            </span>
+            <span class="qt-chip">box operasional <b>{{ result.operational_boxes|length }}</b>
+              / {{ result.detections|length }} disimpan</span>
+            <span class="qt-chip">deteksi <b>{{ result.latency.detection_ms }} ms</b> ·
+              ocr <b>{{ result.latency.ocr_ms }} ms</b></span>
+          </div>
+
+          {% if result.annotated_b64 %}
+            <img class="qt-result-img" src="data:image/jpeg;base64,{{ result.annotated_b64 }}"
+                 alt="Gambar hasil inference dengan kotak deteksi">
+          {% endif %}
+
+          <div class="qt-sub">Deteksi</div>
+          {% for d in result.detections %}
+            <div class="qt-drow {% if d.index not in result.operational_boxes %}below{% endif %}">
+              <span class="qt-badge-idx">#{{ d.index }}</span>
+              <div>
+                <div class="line1">
+                  <span class="ocr">{% if d.ocr_text %}OCR <code>{{ d.ocr_text }}</code>
+                    <span style="font-size:.78rem">(conf {{ d.ocr_confidence|floatformat:2 }})</span>
+                    {% else %}— teks kosong{% endif %}</span>
+                  <span class="conf">{{ d.confidence|floatformat:3 }}</span>
+                </div>
+                <div class="qt-bar"><i class="{% if d.index in result.operational_boxes %}op{% else %}sub{% endif %}"
+                  style="width:{% widthratio d.confidence 1 100 %}%"></i></div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="qt-drow"><span class="qt-badge-idx">—</span>
+              <div class="line1"><span class="ocr">Tidak ada deteksi pada ambang simpan (conf ≥ 0,01).</span></div></div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="qt-empty">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="1.6"/>
+            <path d="M14 14l3-3 2 2"/>
+          </svg>
+          <div>Hasil akan muncul di sini.<br>Pilih gambar dan tekan <strong>Uji sekarang</strong>.</div>
+        </div>
+      {% endif %}
     </div>
   </div>
-
-  <div class="col-md-7">
-    {% if result %}
-      <div class="card shadow-sm mb-3">
-        <div class="card-header d-flex justify-content-between">
-          <span>Hasil — model <strong>{{ result.model_name }}</strong></span>
-          <span class="small text-muted">{{ result.latency.total_ms }} ms</span>
-        </div>
-        <div class="card-body">
-          {% if result.annotated_b64 %}
-            <img src="data:image/jpeg;base64,{{ result.annotated_b64 }}" class="img-fluid border rounded">
-          {% endif %}
-        </div>
-      </div>
-      <div class="card shadow-sm">
-        <div class="card-header">Deteksi ({{ result.detections|length }} box disimpan, {{ result.operational_boxes|length }} operasional)</div>
-        <table class="table table-sm mb-0">
-          <thead><tr><th>#</th><th>Confidence</th><th>Teks OCR</th><th>OCR conf</th><th>Box</th></tr></thead>
-          <tbody>
-          {% for d in result.detections %}
-            <tr class="{% if d.index in result.operational_boxes %}table-success{% else %}text-muted{% endif %}">
-              <td>{{ d.index }}</td>
-              <td>{{ d.confidence|floatformat:3 }}</td>
-              <td><code>{{ d.ocr_text|default:'—' }}</code></td>
-              <td>{{ d.ocr_confidence|floatformat:2 }}</td>
-              <td class="small">[{{ d.box|join:', ' }}]</td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="5" class="text-muted">Tidak ada deteksi (conf ≥ 0,01).</td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
-  </div>
 </div>
+
+<script>
+(function () {
+  const drop = document.getElementById('qt-drop');
+  const file = document.getElementById('qt-file');
+  const prev = document.getElementById('qt-preview');
+  const thumb = document.getElementById('qt-thumb');
+  const meta = document.getElementById('qt-meta');
+  const form = document.getElementById('qt-form');
+  const submit = document.getElementById('qt-submit');
+
+  const show = () => {
+    const f = file.files[0];
+    if (!f) return;
+    thumb.src = URL.createObjectURL(f);
+    meta.textContent = f.name + ' · ' + (f.size / 1024).toFixed(0) + ' KB';
+    prev.style.display = 'flex';
+  };
+  drop.addEventListener('click', () => file.click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } });
+  file.addEventListener('change', show);
+  ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { file.files = e.dataTransfer.files; show(); });
+
+  form.addEventListener('submit', e => {
+    if (!file.files.length) { e.preventDefault();
+      if (!document.getElementById('qt-needfile')) {
+        const w = document.createElement('div'); w.id = 'qt-needfile';
+        w.className = 'qt-error'; w.textContent = 'Pilih gambar dulu, lalu tekan Uji sekarang.';
+        form.appendChild(w);
+      }
+      return; }
+    submit.disabled = true;
+    submit.textContent = 'Menguji…';
+    setTimeout(() => { submit.disabled = false; submit.textContent = 'Uji sekarang'; }, 60000);
+  });
+})();
+</script>
 {% endblock %}

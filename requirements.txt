@@ -22,3 +22,6 @@ paddlepaddle>=2.6.0
 # Notebook / utility (optional)
 jupyterlab
 ipywidgets
+
+django==6.1.2
+openpyxl

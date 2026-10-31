@@ -1,0 +1,21 @@
+{% load static %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ANPR Testing{% endblock %}</title>
+  <link href="{% static 'testing/bootstrap.min.css' %}" rel="stylesheet">
+  <script src="{% static 'testing/chart.umd.min.js' %}"></script>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark bg-dark mb-4">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'testing:home' %}">ANPR Testing</a>
+  </div>
+</nav>
+<main class="container pb-5">
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

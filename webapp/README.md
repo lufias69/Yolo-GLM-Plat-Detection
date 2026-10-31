@@ -29,6 +29,14 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
    100) dengan augmentasi acak ringan per run; hasilnya: "terdeteksi X dari N run",
    "teks sama dengan baseline Y dari N", "teks sama dengan GT Z dari N" + sebaran.
 
+## Model YOLO ganda (halaman /models/)
+
+Upload file `.pt` (bobot Ultralytics YOLO hasil training), aktifkan satu model.
+Foto baru memakai model aktif; tiap foto mencatat model aslinya (tampil di laporan &
+export, kolom `model`). Uji konsistensi memakai model yang sama dengan saat foto
+diproses. Model `best.pt` bawaan riset terdaftar otomatis sebagai model aktif awal.
+`ANPR['WEIGHTS']` di settings hanya menjadi sumber model default saat pertama kali jalan.
+
 ## Konfigurasi (`webapp/anpr_web/settings.py`, dict `ANPR`)
 
 - `WEIGHTS`: path .pt (default hasil training riset).

@@ -9,7 +9,11 @@ from . import metrics
 
 HEADERS = ['file', 'model', 'gt_presence', 'detected_ok', 'target_index', 'ocr_ok', 'gt_text',
            'catatan', 'sistem:deteksi_ada', 'sistem:conf_target', 'sistem:ocr_text',
-           'outcome', 'status_penilaian', 'latensi_ms']
+           'outcome', 'status_penilaian', 'latensi_ms',
+           'ocr_easyocr', 'skor_easyocr', 'ocr_paddleocr', 'skor_paddleocr',
+           'ocr_tesseract', 'skor_tesseract', 'ocr_glm-ocr', 'skor_glm-ocr', 'fragmen_all']
+
+OCR_ENGINES = ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr')
 
 
 def _status_label(photo):
@@ -28,6 +32,15 @@ def rows(batch) -> list:
     for p in photos:
         ann = getattr(p, 'annotation', None)
         det = metrics.target_detection(p) if p.status == 'done' else None
+        ocr_all = {e.get('engine'): e for e in p.system_result.get('ocr_all', [])}
+        engine_cols = []
+        for name in OCR_ENGINES:
+            e = ocr_all.get(name, {})
+            engine_cols.append(e.get('text', ''))
+            engine_cols.append(e.get('conf', ''))
+        frag_str = ' | '.join(
+            f"{e.get('engine')}: " + ', '.join(f"{t} ({c})" for t, c in e.get('fragments', []))
+            for e in p.system_result.get('ocr_all', []))
         out.append([
             p.original_name,
             p.model.name if p.model_id else '',
@@ -43,6 +56,8 @@ def rows(batch) -> list:
             outcome[p.id],
             _status_label(p),
             p.system_result.get('latency', {}).get('total_ms', ''),
+            *engine_cols,
+            frag_str,
         ])
     return out
 

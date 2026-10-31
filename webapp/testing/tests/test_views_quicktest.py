@@ -13,6 +13,15 @@ RESULT = {
     'latency': {'detection_ms': 11.0, 'ocr_ms': 45.0, 'total_ms': 56.0},
     'threshold': 0.25, 'width': 100, 'height': 80,
     'annotated_image': 'annotated/quick_x.jpg',
+    'ocr_all': [
+        {'engine': 'easyocr', 'text': 'DR 1282 AS', 'conf': 0.32,
+         'fragments': [['DR 1282 AS', 0.32]]},
+        {'engine': 'paddleocr', 'text': 'DR 1282 AS', 'conf': 0.99,
+         'fragments': [['DR 1282 AS', 0.99]]},
+        {'engine': 'tesseract', 'text': '', 'conf': 0.0, 'fragments': []},
+        {'engine': 'glm-ocr', 'text': 'DR 1282 AS', 'conf': 1.0,
+         'fragments': [['DR 1282 AS', 1.0]]},
+    ],
 }
 
 
@@ -64,16 +73,9 @@ class QuickTestAllEnginesTest(TestCase):
     def test_comparison_table_rendered(self, gs):
         svc = gs.return_value
         svc.process_file.return_value = dict(RESULT)
-        svc.ocr_all.return_value = {
-            'easyocr': {'text': 'DR 1282 AS', 'conf': 0.32, 'fragments': [['DR 1282 AS', 0.32]]},
-            'paddleocr': {'text': 'DR 1282 AS', 'conf': 0.99, 'fragments': [['DR 1282 AS', 0.99]]},
-            'tesseract': {'text': '', 'conf': 0.0, 'fragments': []},
-            'glm-ocr': {'text': 'DR 1282 AS', 'conf': 0.9, 'fragments': [['DR 1282 AS', 0.9]]},
-        }
         from django.test import Client
         resp = Client().post('/uji-cepat/', {'image': jpg()})
         body = resp.content.decode()
         self.assertIn('Semua engine OCR pada crop target', body)
         for eng in ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr'):
             self.assertIn(eng, body)
-        svc.ocr_all.assert_called_once()

@@ -52,3 +52,26 @@ class ExportTest(TestCase):
         self.assertEqual(summary.get('roc_auc'), 'N/A')  # no negatives
         self.assertAlmostEqual(float(summary['detection_accuracy']), 1.0)  # only TP annotated
         self.assertEqual(wb['Per Foto'].max_row, 3)
+
+
+class ExportOcrAllColumnsTest(TestCase):
+    def test_engine_columns_present(self):
+        batch = TestBatch.objects.create(name='BX')
+        s = sr()
+        s['ocr_all'] = [
+            {'engine': 'easyocr', 'text': 'DR 1282 AS', 'conf': 0.32, 'fragments': [['DR 1282 AS', 0.32]]},
+            {'engine': 'paddleocr', 'text': 'DR 1282 AS', 'conf': 0.99, 'fragments': [['DR 1282 AS', 0.99]]},
+            {'engine': 'tesseract', 'text': '', 'conf': 0.0, 'fragments': []},
+            {'engine': 'glm-ocr', 'text': 'DR 1282 AS', 'conf': 1.0, 'fragments': [['DR 1282 AS', 1.0]]},
+        ]
+        p = Photo.objects.create(batch=batch, original_name='a.jpg', status='done', system_result=s)
+        Annotation.objects.create(photo=p, gt_presence='ADA', detected_ok='BENAR',
+                                  ocr_ok='BENAR', target_detection_index=0)
+        rows = export.rows(batch)
+        header = rows[0]
+        for col in ('ocr_easyocr', 'ocr_paddleocr', 'ocr_tesseract', 'ocr_glm-ocr',
+                    'skor_glm-ocr', 'fragmen_all'):
+            self.assertIn(col, header)
+        data = rows[1]
+        self.assertEqual(data[header.index('ocr_glm-ocr')], 'DR 1282 AS')
+        self.assertIn('glm-ocr', data[header.index('fragmen_all')])

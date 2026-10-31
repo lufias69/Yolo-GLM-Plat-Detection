@@ -249,6 +249,17 @@ class InferenceService:
             render_frame = frame
 
         rendered = self.render_annotated(image, detections, operational)
+
+        # Semua engine OCR pada crop target (tersimpan permanen di system_result)
+        ocr_all = []
+        ocr_all_ms = 0.0
+        if best is not None:
+            t2 = time.perf_counter()
+            try:
+                ocr_all = self.ocr_all(render_frame, box=target['box'])
+            except Exception:
+                ocr_all = []
+            ocr_all_ms = (time.perf_counter() - t2) * 1000.0
         import hashlib
         digest = hashlib.md5(str(path).encode()).hexdigest()[:10]
         # stable name: reprocess overwrites instead of leaking files per run
@@ -262,10 +273,12 @@ class InferenceService:
             'operational_boxes': operational,
             'rotation': int(rotation),
             'ocr_engine': settings.ANPR['OCR_ENGINE'],
+            'ocr_all': ocr_all,
             'latency': {
                 'detection_ms': round(detection_ms, 2),
                 'ocr_ms': round(ocr_ms, 2),
-                'total_ms': round(detection_ms + ocr_ms, 2),
+                'ocr_all_ms': round(ocr_all_ms, 2),
+                'total_ms': round(detection_ms + ocr_ms + ocr_all_ms, 2),
             },
             'threshold': settings.ANPR['CONF_OPERATIONAL'],
             'width': int(w),
@@ -274,17 +287,15 @@ class InferenceService:
         }
 
 
-    def ocr_all(self, path: Path, box=None) -> dict:
-        """Run every registered OCR engine on the crop and return per-engine
-        picks, for side-by-side comparison (uji cepat)."""
-        from anpr.ocr_engines import get_engine, plate_shape_score
-        image = cv2.imread(str(path))
-        if image is None:
-            raise InferenceError(f'Gambar tidak dapat dibaca: {path.name}')
+    def ocr_all(self, image_bgr: np.ndarray, box=None) -> list:
+        """Run every registered OCR engine on (the crop of) the image and
+        return per-engine picks + raw fragments, for side-by-side comparison.
+        Stored in system_result so nothing is lost."""
+        from anpr.ocr_engines import plate_shape_score
         if box is not None:
             x1, y1, x2, y2 = [int(v) for v in box]
-            image = image[y1:y2, x1:x2]
-        out = {}
+            image_bgr = image_bgr[y1:y2, x1:x2]
+        out = []
         for name in ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr'):
             try:
                 if name == 'paddleocr':
@@ -293,18 +304,18 @@ class InferenceService:
                     engine = self._cached_engine(name, gpu=settings.ANPR['OCR_GPU'])
                 else:
                     engine = self._cached_engine(name)
-                frags = engine.recognize_fragments(image, preprocess=settings.ANPR['OCR_PREPROCESS'])
+                frags = engine.recognize_fragments(image_bgr, preprocess=settings.ANPR['OCR_PREPROCESS'])
                 if frags:
                     text, conf = max(frags, key=lambda f: plate_shape_score(f[0]))
                     if plate_shape_score(text) == 0.0:
                         text, conf = max(frags, key=lambda f: f[1])
                 else:
                     text, conf = '', 0.0
-                out[name] = {'text': text, 'conf': round(float(conf), 3),
-                             'fragments': [[t, round(float(c), 3)] for t, c in frags]}
+                out.append({'engine': name, 'text': text, 'conf': round(float(conf), 3),
+                            'fragments': [[t, round(float(c), 3)] for t, c in frags]})
             except Exception as exc:
-                out[name] = {'text': '', 'conf': 0.0, 'fragments': [],
-                             'error': str(exc)[:200]}
+                out.append({'engine': name, 'text': '', 'conf': 0.0, 'fragments': [],
+                            'error': str(exc)[:200]})
         return out
 
     def _cached_engine(self, name, **kw):

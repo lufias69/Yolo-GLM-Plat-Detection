@@ -57,6 +57,28 @@
         </tbody>
       </table>
     </div>
+
+    {% if photo.system_result.ocr_all %}
+    <div class="card mt-3">
+      <div class="card-header">Semua engine OCR pada crop target <span class="badge bg-secondary">tersimpan di database</span></div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Engine</th><th>Teks terpilih</th><th>Skor</th><th>Fragmen mentah</th></tr></thead>
+        <tbody>
+        {% for e in photo.system_result.ocr_all %}
+          <tr>
+            <td><strong>{{ e.engine }}</strong></td>
+            <td>{% if e.error %}<span class="text-danger small">{{ e.error }}</span>
+                {% else %}<code>{{ e.text|default:'—' }}</code>{% endif %}</td>
+            <td>{{ e.conf|floatformat:2 }}</td>
+            <td class="small text-muted">{% for f in e.fragments %}{{ f.0 }} ({{ f.1 }}){% if not forloop.last %} · {% endif %}{% empty %}—{% endfor %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="card-footer small text-muted">Hasil ini dihitung saat foto diproses dan tersimpan permanen
+        (proses ulang = dihitung ulang dengan engine yang aktif saat itu).</div>
+    </div>
+    {% endif %}
   </div>
 
   <div class="col-lg-5">

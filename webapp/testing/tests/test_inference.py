@@ -316,9 +316,64 @@ class OcrAllTest(TestCase):
         orig = oe.get_engine
         oe.get_engine = lambda name, **kw: engines[name]
         self.addCleanup(setattr, oe, 'get_engine', orig)
-        out = svc.ocr_all(Path(self.path))
+        img = cv2.imread(self.path)
+        out = {e['engine']: e for e in svc.ocr_all(img, box=[10, 10, 190, 60])}
         self.assertEqual(set(out), set(engines))
         for name, r in out.items():
             expected = 'DR1282AS' if name == 'tesseract' else 'DR 1282 AS'
             self.assertEqual(r['text'], expected, name)  # pick by plate shape
             self.assertIn('conf', r)
+
+
+class OcrAllPersistedTest(TestCase):
+    """Semua hasil engine (teks, skor, fragmen mentah) tersimpan di system_result."""
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_process_file_stores_ocr_all(self):
+        img = np.zeros((100, 200, 3), dtype=np.uint8)
+        fd, path = tempfile.mkstemp(suffix='.jpg')
+        os.close(fd)
+        cv2.imwrite(path, img)
+        self.addCleanup(lambda: Path(path).unlink(missing_ok=True))
+
+        svc = InferenceService.__new__(InferenceService)
+        import threading
+        svc._model = FakeYOLO([[10, 10, 190, 60]], [0.9])
+        svc._engine = FakeEngine()
+        svc._models = {}
+        svc._load_lock = threading.Lock()
+
+        engines = {
+            'easyocr': FakeMultiEngine('easyocr', [('DR 1282 AS', 0.4), ('26', 0.9)]),
+            'paddleocr': FakeMultiEngine('paddleocr', [('DR 1282 AS', 0.99)]),
+            'tesseract': FakeMultiEngine('tesseract', [('DR1282AS', 1.0)]),
+            'glm-ocr': FakeMultiEngine('glm-ocr', [('DR 1282 AS', 0.9), ('05 28', 0.8)]),
+        }
+        import anpr.ocr_engines as oe
+        orig = oe.get_engine
+        oe.get_engine = lambda name, **kw: engines[name]
+        self.addCleanup(setattr, oe, 'get_engine', orig)
+
+        res = svc.process_file(Path(path))
+        self.assertIn('ocr_all', res)
+        by = {e['engine']: e for e in res['ocr_all']}
+        self.assertEqual(set(by), set(engines))
+        self.assertEqual(by['easyocr']['text'], 'DR 1282 AS')
+        self.assertEqual(by['easyocr']['fragments'], [['DR 1282 AS', 0.4], ['26', 0.9]])
+        self.assertEqual(by['glm-ocr']['text'], 'DR 1282 AS')
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_no_detection_no_ocr_all(self):
+        img = np.zeros((100, 200, 3), dtype=np.uint8)
+        fd, path = tempfile.mkstemp(suffix='.jpg')
+        os.close(fd)
+        cv2.imwrite(path, img)
+        self.addCleanup(lambda: Path(path).unlink(missing_ok=True))
+        svc = InferenceService.__new__(InferenceService)
+        import threading
+        svc._model = FakeYOLO([], [])
+        svc._engine = FakeEngine()
+        svc._models = {}
+        svc._load_lock = threading.Lock()
+        res = svc.process_file(Path(path))
+        self.assertEqual(res.get('ocr_all'), [])

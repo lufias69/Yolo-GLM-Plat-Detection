@@ -50,6 +50,10 @@ class Photo(models.Model):
         return self.original_name or f'Photo #{self.pk}'
 
     @property
+    def operational_boxes(self):
+        return self.system_result.get('operational_boxes', [])
+
+    @property
     def operational_detections(self):
         """Detections at/above the operational threshold, with their stored index."""
         return [d for d in self.system_result.get('detections', [])

@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Photo, TestBatch
+from .models import Annotation, Photo, TestBatch
+from .forms import AnnotationForm
 from .services import workers
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
@@ -30,12 +31,57 @@ def batch_detail(request, batch_id):
                   {'batch': batch, 'photos': photos, 'pending_ids': pending_ids})
 
 
+def _next_unannotated(batch, after_id=None):
+    photos = batch.photos.select_related('annotation').order_by('uploaded_at', 'id').filter(status='done')
+    for p in photos:
+        if after_id is not None and p.id <= after_id:
+            continue
+        ann = getattr(p, 'annotation', None)
+        if ann is None or not ann.is_complete() or ann.stale:
+            return p
+    return None
+
+
+def next_unannotated(request, batch_id):
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    nxt = _next_unannotated(batch)
+    if nxt is None:
+        return redirect('testing:batch_detail', batch_id=batch.id)
+    return redirect('testing:photo_detail', photo_id=nxt.id)
+
+
 def photo_detail(request, photo_id):
-    # Placeholder; lengkap di Task 5 (halaman penilaian).
-    photo = get_object_or_404(Photo, pk=photo_id)
-    return render(request, 'testing/batch_detail.html',
-                  {'batch': photo.batch, 'photos': photo.batch.photos.select_related('annotation'),
-                   'pending_ids': []})
+    photo = get_object_or_404(Photo.objects.select_related('annotation', 'batch'), pk=photo_id)
+    if photo.status != 'done':
+        return redirect('testing:batch_detail', batch_id=photo.batch_id)
+    ann = getattr(photo, 'annotation', None)
+    form = AnnotationForm(instance=ann, photo=photo)
+    return render(request, 'testing/photo_detail.html', {
+        'photo': photo, 'form': form, 'batch': photo.batch,
+        'detections': photo.system_result.get('detections', []),
+        'operational': photo.operational_boxes,
+    })
+
+
+@require_POST
+def annotate(request, photo_id):
+    photo = get_object_or_404(Photo.objects.select_related('batch'), pk=photo_id)
+    form = AnnotationForm(request.POST, photo=photo)
+    if form.is_valid():
+        ann, _ = Annotation.objects.update_or_create(
+            photo=photo, defaults={**form.cleaned_data, 'stale': False})
+        if request.POST.get('next'):
+            nxt = _next_unannotated(photo.batch, after_id=photo.id)
+            if nxt is not None:
+                return redirect('testing:photo_detail', photo_id=nxt.id)
+            return redirect('testing:batch_detail', batch_id=photo.batch_id)
+        messages.success(request, 'Penilaian tersimpan.')
+        return redirect('testing:photo_detail', photo_id=photo.id)
+    return render(request, 'testing/photo_detail.html', {
+        'photo': photo, 'form': form, 'batch': photo.batch,
+        'detections': photo.system_result.get('detections', []),
+        'operational': photo.operational_boxes,
+    })
 
 
 @require_POST

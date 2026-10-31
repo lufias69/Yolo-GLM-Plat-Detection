@@ -15,6 +15,7 @@
     <span class="text-muted small">{{ batch.description }}</span>
   </div>
   <a class="btn btn-outline-primary btn-sm" href="{% url 'testing:home' %}">&larr; Semua batch</a>
+  <a class="btn btn-outline-dark btn-sm ms-2" href="{% url 'testing:batch_report' batch.id %}">Laporan batch</a>
 </div>
 
 <div class="card shadow-sm mb-4">

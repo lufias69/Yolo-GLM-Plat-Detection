@@ -1,0 +1,118 @@
+{% extends 'testing/base.html' %}
+{% load report_extras %}
+
+{% block title %}Laporan: {{ batch.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Laporan batch — {{ batch.name }}</h1>
+  <div>
+    <a class="btn btn-sm btn-outline-success" href="/batch/{{ batch.id }}/report/export.csv">Export CSV</a>
+    <a class="btn btn-sm btn-outline-success" href="/batch/{{ batch.id }}/report/export.xlsx">Export Excel</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'testing:batch_detail' batch.id %}">&larr; Batch</a>
+  </div>
+</div>
+
+{% if rep.counts.unannotated or not rep.counts.total %}
+  <div class="alert alert-warning py-2">
+    {% if rep.counts.total %}<strong>{{ rep.counts.unannotated }} dari {{ rep.counts.total }} foto belum dinilai</strong> —{% else %}<strong>Belum ada foto dinilai — semua hasil belum dinilai.</strong>{% endif %}
+    semua metrik hanya dihitung dari foto yang dinilai lengkap{% if rep.counts.stale %} ({{ rep.counts.stale }} penilaian STALE diabaikan){% endif %}.
+  </div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-muted">Deteksi</h6>
+      <div>Accuracy: <strong>{{ rep.detection.accuracy|pct }}</strong></div>
+      <div>Precision: <strong>{{ rep.detection.precision|pct }}</strong></div>
+      <div>Recall: <strong>{{ rep.detection.recall|pct }}</strong></div>
+      <div>F1: <strong>{{ rep.detection.f1|pct }}</strong></div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-muted">Confusion matrix (per foto)</h6>
+      <table class="table table-sm mb-0">
+        <tr><td></td><th>Deteksi</th><th>Tidak</th></tr>
+        <tr><th>Ada plat</th><td class="text-success">TP {{ rep.detection.tp }}</td><td class="text-danger">FN {{ rep.detection.fn }}</td></tr>
+        <tr><th>Tanpa plat</th><td class="text-danger">FP {{ rep.detection.fp }}</td><td class="text-success">TN {{ rep.detection.tn }}</td></tr>
+      </table>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-muted">OCR</h6>
+      <div>Exact match: <strong>{{ rep.ocr.exact_match|pct }}</strong></div>
+      <div>Char accuracy: <strong>{{ rep.ocr.char_accuracy|pct }}</strong></div>
+      <div>CER rata-rata: <strong>{{ rep.ocr.cer_mean|num }}</strong></div>
+      <div class="small text-muted">n = {{ rep.ocr.n_evaluated }} foto</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-muted">Kinerja</h6>
+      <div>Latency rata²: <strong>{{ rep.latency.mean_ms|num:'1' }} ms</strong></div>
+      <div>Median: <strong>{{ rep.latency.median_ms|num:'1' }} ms</strong></div>
+      <div>P95: <strong>{{ rep.latency.p95_ms|num:'1' }} ms</strong></div>
+      <div>FPS: <strong>{{ rep.latency.fps|num:'2' }}</strong></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-5">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>AUC-ROC deteksi: <strong>{% if not roc_available %}N/A{% else %}{{ rep.roc.auc|num }}{% endif %}</strong></h6>
+      {% if not roc_available %}
+        <p class="small text-muted mb-0">AUC tidak terdefinisi: pengujian butuh foto ber-ground-truth ADA plat <em>dan</em> TANPA plat.</p>
+      {% else %}
+        <canvas data-report="roc-points" id="rocChart" height="260">{{ roc_points_json }}</canvas>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">Rekap per foto</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead><tr><th>Foto</th><th>GT ada plat</th><th>Outcome</th><th>Conf target</th><th>OCR sistem</th><th>GT teks</th><th>Latensi ms</th><th>Catatan</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td><a href="{% url 'testing:photo_detail' r.photo.id %}">{{ r.photo.original_name|truncatechars:32 }}</a></td>
+          <td>{{ r.ann.gt_presence|default:'—' }}{% if r.ann.stale %} <span class="badge bg-info text-dark">STALE</span>{% endif %}</td>
+          <td>{{ r.outcome|default:'belum dinilai' }}</td>
+          <td>{{ r.conf|num }}</td>
+          <td><code>{{ r.ocr_text|default:'—' }}</code></td>
+          <td><code>{{ r.ann.gt_text|default:'—' }}</code></td>
+          <td>{{ r.latency_ms|num:'1' }}</td>
+          <td>{{ r.ann.note|truncatechars:40 }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if roc_available %}
+<script>
+(function () {
+  const el = document.querySelector('[data-report="roc-points"]');
+  if (!el) return;
+  const pts = JSON.parse(el.textContent || '[]').filter(p => p.threshold <= 1);
+  new Chart(el, {
+    type: 'line',
+    data: { datasets: [{ label: 'ROC', data: pts.map(p => ({x: p.fpr, y: p.tpr})),
+                         borderColor: '#0d6efd', tension: 0.1 }] },
+    options: { scales: { x: { min: 0, max: 1, title: {display:true, text:'FPR'} },
+                         y: { min: 0, max: 1, title: {display:true, text:'TPR'} } },
+               plugins: { tooltip: { callbacks: { label: (c) => {
+                 const p = pts[c.dataIndex];
+                 return `TPR ${p.tpr.toFixed(3)} / FPR ${p.fpr.toFixed(3)} @ conf ${p.threshold.toFixed(3)}`; } } } } }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

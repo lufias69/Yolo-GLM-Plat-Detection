@@ -46,7 +46,7 @@ def _ann(p):
     return ann
 
 
-def _target_detection(p):
+def target_detection(p):
     """Detection dict for the target box, or None."""
     ops = p.operational_boxes
     if not ops:
@@ -108,7 +108,7 @@ def _roc_points(photos):
     for p in photos:
         outcome = photo_outcome(p)
         if outcome == 'TP':
-            det = _target_detection(p)
+            det = target_detection(p)
             pts.append((det['confidence'] if det else 0.0, True))
         elif outcome in ('FP', 'TN'):
             dets = [d for d in p.system_result.get('detections', [])
@@ -157,7 +157,7 @@ def ocr_metrics(photos) -> dict:
         ann = _ann(p)
         if ann is None or ann.ocr_ok not in ('BENAR', 'SALAH'):
             continue
-        det = _target_detection(p)
+        det = target_detection(p)
         if det is None:
             continue
         gt = ann.gt_text or (det.get('ocr_text', '') if ann.ocr_ok == 'BENAR' else '')

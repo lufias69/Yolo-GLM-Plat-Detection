@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -5,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Annotation, Photo, TestBatch
 from .forms import AnnotationForm
-from .services import workers
+from .services import metrics, workers
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
 
@@ -118,3 +120,23 @@ def reprocess_photo(request, photo_id):
 def photo_status(request, photo_id):
     photo = get_object_or_404(Photo, pk=photo_id)
     return JsonResponse({'status': photo.status, 'error_message': photo.error_message})
+
+
+def batch_report_view(request, batch_id):
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    rep = metrics.batch_report(batch)
+    rows = []
+    for p in batch.photos.select_related('annotation').all():
+        ann = getattr(p, 'annotation', None)
+        det = metrics.target_detection(p) if p.status == 'done' else None
+        rows.append({
+            'photo': p, 'ann': ann, 'outcome': rep['outcomes'].get(p.id, ''),
+            'conf': det['confidence'] if det else None,
+            'ocr_text': det['ocr_text'] if det else '',
+            'latency_ms': p.system_result.get('latency', {}).get('total_ms'),
+        })
+    return render(request, 'testing/report.html', {
+        'batch': batch, 'rep': rep, 'rows': rows,
+        'roc_available': rep['roc']['auc'] is not None,
+        'roc_points_json': json.dumps(rep['roc']['points']),
+    })

@@ -10,10 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Research project root (parent of webapp/) hosts the existing `anpr` package.
+RESEARCH_ROOT = BASE_DIR.parent
+if str(RESEARCH_ROOT) not in sys.path:
+    sys.path.insert(0, str(RESEARCH_ROOT))
 
 
 # Quick-start development settings - unsuitable for production

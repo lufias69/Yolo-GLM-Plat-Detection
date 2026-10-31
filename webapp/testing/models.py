@@ -59,6 +59,17 @@ class Photo(models.Model):
         ann = getattr(self, 'annotation', None)
         return bool(ann and ann.stale)
 
+    def reprocess(self):
+        """Mark photo for re-running inference; invalidates existing annotation."""
+        self.status = 'queued'
+        self.error_message = ''
+        self.result_version += 1
+        self.save(update_fields=['status', 'error_message', 'result_version'])
+        ann = getattr(self, 'annotation', None)
+        if ann is not None and not ann.stale:
+            ann.stale = True
+            ann.save(update_fields=['stale'])
+
 
 class Annotation(models.Model):
     GT_PRESENCE_CHOICES = [('', '-'), ('ADA', 'Ada plat'), ('TIDAK_ADA', 'Tidak ada plat')]

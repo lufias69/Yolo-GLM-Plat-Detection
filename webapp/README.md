@@ -51,6 +51,14 @@ diproses. Model `best.pt` bawaan riset terdaftar otomatis sebagai model aktif aw
 - `OCR_ENGINE`/`OCR_GPU`/`OCR_PREPROCESS`: identik dengan script riset
   (EasyOCR CPU, CLAHE + upscale).
 
+## Rotasi otomatis
+
+Setiap foto diuji pada 4 orientasi (0/90/180/270); orientasi dengan confidence
+terbaik dipakai (deteksi + OCR pada frame terorientasi, box dipetakan balik ke
+koordinat foto asli). Foto plat miring/terbalik tetap terbaca. Orientasi terpilih
+disimpan di `system_result.rotation` dan tampil sebagai badge di halaman foto &
+uji cepat. Biaya: 4× pass deteksi per foto (OCR tetap 1×).
+
 ## Definisi metrik
 
 - Satuan analisis = foto (1 foto diasumsikan 1 motor).

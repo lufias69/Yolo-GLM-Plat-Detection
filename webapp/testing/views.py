@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Annotation, Photo, TestBatch
 from .forms import AnnotationForm
-from .services import metrics, workers
+from .services import export, metrics, workers
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
 
@@ -140,3 +140,20 @@ def batch_report_view(request, batch_id):
         'roc_available': rep['roc']['auc'] is not None,
         'roc_points_json': json.dumps(rep['roc']['points']),
     })
+
+
+def batch_export_csv(request, batch_id):
+    from django.http import HttpResponse
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    resp = HttpResponse(export.to_csv(batch), content_type='text/csv; charset=utf-8')
+    resp['Content-Disposition'] = f'attachment; filename="batch_{batch_id}.csv"'
+    return resp
+
+
+def batch_export_xlsx(request, batch_id):
+    from django.http import HttpResponse
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    resp = HttpResponse(export.to_xlsx(batch),
+                        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    resp['Content-Disposition'] = f'attachment; filename="batch_{batch_id}.xlsx"'
+    return resp

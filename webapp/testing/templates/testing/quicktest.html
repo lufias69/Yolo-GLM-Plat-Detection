@@ -113,6 +113,9 @@
                 <span class="region">{{ first.ocr_text|slice:":2"|default:'—' }}</span>
                 <span class="num">{{ first.ocr_text|slice:"2:"|default:'plat tidak terbaca' }}</span>
               </div>
+              <p class="small text-muted" style="margin:-0.4rem 0 .8rem">
+                Bacaan engine utama <strong>{{ result.ocr_engine|default:'easyocr' }}</strong> pada box target
+                — bandingkan engine lain di tabel bawah.</p>
             {% endwith %}
           {% endif %}
 

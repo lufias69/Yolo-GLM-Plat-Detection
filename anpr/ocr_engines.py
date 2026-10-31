@@ -94,10 +94,71 @@ class PaddleOCREngine(BaseOCREngine):
         return postprocessing.normalize_plate_text(text), conf
 
 
+def plate_shape_score(text: str) -> float:
+    """Heuristic 0..1: how much `text` looks like an Indonesian plate
+    (letters -> digits -> optional letters). Used as a confidence proxy for
+    engines that return no score (GLM-OCR)."""
+    t = postprocessing.normalize_plate_text(text)
+    if not t:
+        return 0.0
+    compact = t.replace(' ', '')
+    if not (any(c.isalpha() for c in compact) and any(c.isdigit() for c in compact)):
+        return 0.0
+    score = 1.0 if postprocessing.PLATE_REGEX.match(compact) else 0.4
+    if 6 <= len(compact) <= 10:
+        score += 0.3
+    elif len(compact) < 4 or len(compact) > 12:
+        score -= 0.3
+    return max(0.0, min(1.0, score))
+
+
+class GLMOCREngine(BaseOCREngine):
+    """GLM-OCR via local Ollama (model glm-ocr:q8_0). Vision-language OCR:
+    reads the whole crop, returns all text lines; the plate-shaped line wins.
+    No native confidence -> plate_shape_score is used as the score."""
+    name = 'glm-ocr'
+
+    def __init__(self, model: str = 'glm-ocr:q8_0', base_url: str = 'http://localhost:11434'):
+        self.model = model
+        self.base_url = base_url.rstrip('/')
+
+    def recognize(self, image, preprocess=None):
+        import base64
+        import cv2
+        import requests
+        import tempfile
+        from anpr import preprocessing
+        img = preprocessing.pipeline(image, **(preprocess or {}))
+        if len(img.shape) == 2:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        ok, buf = cv2.imencode('.jpg', img)
+        if not ok:
+            return '', 0.0
+        r = requests.post(self.base_url + '/api/generate', json={
+            'model': self.model,
+            'prompt': 'Text Recognition:',
+            'images': [base64.b64encode(buf.tobytes()).decode()],
+            'stream': False,
+            'options': {'temperature': 0},
+        }, timeout=120)
+        r.raise_for_status()
+        response = r.json().get('response', '')
+        best, best_score = '', 0.0
+        for line in response.splitlines():
+            t = postprocessing.normalize_plate_text(line)
+            s = plate_shape_score(t)
+            if s > best_score:
+                best, best_score = t, s
+        if not best and response.strip():
+            best = postprocessing.normalize_plate_text(response.splitlines()[0])
+        return best, best_score
+
+
 ENGINES = {
     'tesseract': TesseractEngine,
     'easyocr': EasyOCREngine,
     'paddleocr': PaddleOCREngine,
+    'glm-ocr': GLMOCREngine,
 }
 
 

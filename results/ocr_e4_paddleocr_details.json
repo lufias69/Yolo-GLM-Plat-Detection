@@ -2,191 +2,191 @@
  {
   "crop_file": "20211122_114445_jpg.rf.270cd60a724a1a8d7ea537b1c144b715_plate0.jpg",
   "truth": "6",
-  "pred": "",
+  "pred": "G",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.7609216570854187
  },
  {
   "crop_file": "20230506_145418_jpg.rf.3500089e73299c42a308cb97bd1b08ce_plate0.jpg",
   "truth": "DR 1282 AS",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 1282 AS",
+  "cer": 0.0,
+  "confidence": 0.991451621055603
  },
  {
   "crop_file": "20230506_154759_jpg.rf.2288c11f26196226661dc185238c6eb0_plate0.jpg",
   "truth": "26",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KT 1910 VI",
+  "cer": 5.0,
+  "confidence": 0.9998243451118469
  },
  {
   "crop_file": "20230506_154900_jpg.rf.e17be28dcbc6a1a8690b2385eda88eaa_plate0.jpg",
   "truth": "DR 4837 EO",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "R4837E",
+  "cer": 0.4,
+  "confidence": 0.921504020690918
  },
  {
   "crop_file": "20230506_164027_jpg.rf.a20ef3483c7b072d56dc41047d87db9a_plate0.jpg",
   "truth": "DR 8438 BE",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR8438 BE",
+  "cer": 0.1,
+  "confidence": 0.9341608881950378
  },
  {
   "crop_file": "20230506_164202_jpg.rf.fe2344f168c610c69cc20a5b6cdad9c8_plate0.jpg",
   "truth": "DR 1298 SK",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 1298 SK",
+  "cer": 0.0,
+  "confidence": 0.9998887181282043
  },
  {
   "crop_file": "20230506_170308_jpg.rf.a053a899aaab406139e75ddcf3c954b3_plate0.jpg",
   "truth": "DRL137FM",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR4137EM",
+  "cer": 0.25,
+  "confidence": 0.9889501929283142
  },
  {
   "crop_file": "20230506_170729_jpg.rf.9bd375aff0976ff133024625097cbd65_plate0.jpg",
   "truth": "0 1 28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "0128",
+  "cer": 0.3333333333333333,
+  "confidence": 0.9991351366043091
  },
  {
   "crop_file": "20230506_170930_jpg.rf.71442387c20297d85fbd9b456dc5720b_plate0.jpg",
   "truth": "R L18ZIO",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 4187 TO",
+  "cer": 0.625,
+  "confidence": 0.9875823259353638
  },
  {
   "crop_file": "20230512_114722_jpg.rf.d913e82e962be641b672d97b7c0b59ab_plate0.jpg",
   "truth": "AB 3906 XH",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "AB3906XN",
+  "cer": 0.3,
+  "confidence": 0.95965176820755
  },
  {
   "crop_file": "20230512_114843_jpg.rf.2dfbe8a905cde6572a4903e284262ab5_plate0.jpg",
   "truth": "2877",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "AD 2877GO",
+  "cer": 1.25,
+  "confidence": 0.8457887768745422
  },
  {
   "crop_file": "20230512_114843_jpg.rf.2dfbe8a905cde6572a4903e284262ab5_plate1.jpg",
   "truth": "UC",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "AB 5430 UC",
+  "cer": 4.0,
+  "confidence": 0.999477207660675
  },
  {
   "crop_file": "20230512_115418_jpg.rf.98570601c7994413e13e18734dc23bd3_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "F 2543",
+  "cer": 2.5,
+  "confidence": 0.9997628331184387
  },
  {
   "crop_file": "20230911_113455_jpg.rf.6fcd052fb4690a3eb0d8e3c9ffb263dd_plate0.jpg",
   "truth": "R",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 306",
+  "cer": 5.0,
+  "confidence": 0.9991386532783508
  },
  {
   "crop_file": "20230911_113642_jpg.rf.96851620c3ccd79699911ced06cf1ad7_plate0.jpg",
   "truth": "UR LL8 EP",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "UR4481 EP",
+  "cer": 0.4444444444444444,
+  "confidence": 0.9783670902252197
  },
  {
   "crop_file": "20230911_113820_jpg.rf.82682516474e28c1c15c39f1bc6dc87f_plate0.jpg",
   "truth": "R",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "CR 2402 CB",
+  "cer": 9.0,
+  "confidence": 0.9795506596565247
  },
  {
   "crop_file": "20230911_114206_jpg.rf.7352958ead31fd53ed22df073a2e0068_plate0.jpg",
   "truth": "DR 2188 EM",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2188 EN",
+  "cer": 0.1,
+  "confidence": 0.962786853313446
  },
  {
   "crop_file": "20230911_114220_jpg.rf.96574f360eb90fef0f2b9a6d0f061df6_plate0.jpg",
   "truth": "0328",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 3117 US",
+  "cer": 2.25,
+  "confidence": 0.9853690266609192
  },
  {
   "crop_file": "20230911_114609_jpg.rf.e668a1919ea1d24da4fdf4e4bb00d230_plate0.jpg",
   "truth": "YD",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 3348 YD",
+  "cer": 4.0,
+  "confidence": 0.999174952507019
  },
  {
   "crop_file": "20230911_114850_jpg.rf.80406c070abb92e460b98c512059b009_plate0.jpg",
   "truth": "0827",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2230 TW",
+  "cer": 2.25,
+  "confidence": 0.9998806715011597
  },
  {
   "crop_file": "20230911_114925_jpg.rf.8c8fa6662bf795f9001468503f733e13_plate0.jpg",
   "truth": "03",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2430 CO",
+  "cer": 4.5,
+  "confidence": 0.9995434880256653
  },
  {
   "crop_file": "20230911_115320_jpg.rf.9344c93fdfe45db677ae47f888d89a35_plate0.jpg",
   "truth": "27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 3606EM",
+  "cer": 4.5,
+  "confidence": 0.9878343939781189
  },
  {
   "crop_file": "20230911_115504_jpg.rf.54c949d4f9ac8898c3a963a4ba89c565_plate0.jpg",
   "truth": "08",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2297 CV",
+  "cer": 5.0,
+  "confidence": 0.9943331480026245
  },
  {
   "crop_file": "20230911_131532_jpg.rf.b1eb75bf6f0f4acfea496b45955cdd89_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 4992 MW",
+  "cer": 4.0,
+  "confidence": 0.999792754650116
  },
  {
   "crop_file": "20230911_131548_jpg.rf.535c50340551a639c1de6f699c25438c_plate0.jpg",
   "truth": "DR LZ51FM",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 4751 EM",
+  "cer": 0.4444444444444444,
+  "confidence": 0.9541454315185547
  },
  {
   "crop_file": "20230911_131834_jpg.rf.879fe46f8ad9c45b12db4bb379b0d01e_plate0.jpg",
   "truth": "08",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 2165 NB",
+  "cer": 5.0,
+  "confidence": 0.9994192123413086
  },
  {
   "crop_file": "910715-725x490_jpg.rf.39c368a93f7bbc28b1ad2f48416e1c80_plate0.jpg",
   "truth": "AB 6765 RU",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "AB 6765 RU",
+  "cer": 0.0,
+  "confidence": 0.9996367692947388
  },
  {
   "crop_file": "Cars104_png.rf.c7e3321260c90b92c6f222cfbe4582eb_plate0.jpg",
@@ -198,156 +198,156 @@
  {
   "crop_file": "Cars125_png.rf.a7da1969a46120a0a14dd2bee77f219c_plate0.jpg",
   "truth": "RP",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "RP 8689",
+  "cer": 2.5,
+  "confidence": 0.5832570791244507
  },
  {
   "crop_file": "Cars139_png.rf.e0ff41a175067fce613f2af7f9c70f48_plate1.jpg",
   "truth": "ICLU",
-  "pred": "",
+  "pred": "M",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.4791546165943146
  },
  {
   "crop_file": "Cars15_png.rf.2fc0d29b9e2051fd9dce82a36242b48f_plate0.jpg",
   "truth": "TI4BY0163",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "TM21BY0166",
+  "cer": 0.4444444444444444,
+  "confidence": 0.857805609703064
  },
  {
   "crop_file": "Cars204_png.rf.056383c815b71e2fe5f2baa53b8df356_plate0.jpg",
   "truth": "BYOND",
   "pred": "",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.5403791666030884
  },
  {
   "crop_file": "Cars212_png.rf.d6293a2e19850e59576e897f772c6b7e_plate0.jpg",
   "truth": "KL 65 H 4383",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL 65 H 4383",
+  "cer": 0.0,
+  "confidence": 0.999080240726471
  },
  {
   "crop_file": "Cars213_png.rf.605e2bcd0f6c7fee610f68f0a9719463_plate0.jpg",
   "truth": "2",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "2",
+  "cer": 0.0,
+  "confidence": 0.9998682737350464
  },
  {
   "crop_file": "Cars223_png.rf.5477fca5a236f68a0401531903d33dd8_plate0.jpg",
   "truth": "WHEOO",
-  "pred": "",
+  "pred": "VHA800",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.8433345556259155
  },
  {
   "crop_file": "Cars240_png.rf.24bed880b09979a25e7a7d017a09e4d5_plate0.jpg",
   "truth": "CDAF",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "COAF",
+  "cer": 0.25,
+  "confidence": 0.8978949785232544
  },
  {
   "crop_file": "Cars302_png.rf.c47ee735acc66104dcb5dfeaff1ad771_plate0.jpg",
   "truth": "KLOICC5D",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL01CC50",
+  "cer": 0.375,
+  "confidence": 0.9198939204216003
  },
  {
   "crop_file": "Cars322_png.rf.cda6ea5657dde1f5020eed14e5e33d0e_plate0.jpg",
   "truth": "700V",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "700V",
+  "cer": 0.0,
+  "confidence": 0.9962038397789001
  },
  {
   "crop_file": "Cars365_png.rf.3cbcf4b32aa1830737d17057f575f470_plate0.jpg",
   "truth": "FTZH B2 0708",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "TN 21 BZ 0768",
+  "cer": 0.5833333333333334,
+  "confidence": 0.9975082874298096
  },
  {
   "crop_file": "Cars373_png.rf.b74d1352891605ee8a92061cafe28fc6_plate0.jpg",
   "truth": "INIAC625",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "INP1800225",
+  "cer": 0.75,
+  "confidence": 0.8263975977897644
  },
  {
   "crop_file": "Cars378_png.rf.85d8d1b3e951124730bcc254cc08679b_plate0.jpg",
   "truth": "4141",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "4141",
+  "cer": 0.0,
+  "confidence": 0.9069933295249939
  },
  {
   "crop_file": "Cars382_png.rf.d83926482670c2c3d6431bdb3dc3d620_plate0.jpg",
   "truth": "CRAIG",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "CRAIG",
+  "cer": 0.0,
+  "confidence": 0.9997498393058777
  },
  {
   "crop_file": "Cars391_png.rf.67a85759272cef34fbc6776ab258e4d2_plate0.jpg",
   "truth": "HYL 324",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "BKWL324",
+  "cer": 0.5714285714285714,
+  "confidence": 0.9208625555038452
  },
  {
   "crop_file": "Cars394_png.rf.99be07b32de61f4c7cbde08a4cdb11b8_plate0.jpg",
   "truth": "NH 12 WR 0GI",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH 12 MR 0613",
+  "cer": 0.4166666666666667,
+  "confidence": 0.9015054702758789
  },
  {
   "crop_file": "Cars39_png.rf.f391576df6989fa736d361ae22238818_plate0.jpg",
   "truth": "HH45BD8877",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH15BD8877",
+  "cer": 0.2,
+  "confidence": 0.9890681505203247
  },
  {
   "crop_file": "Cars410_png.rf.e5566f8d5bae2eaff2dc6d67ef322fa3_plate0.jpg",
   "truth": "FEB",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EWW POOP",
+  "cer": 2.6666666666666665,
+  "confidence": 0.9982403516769409
  },
  {
   "crop_file": "Cars423_png.rf.e19221f2c274eb74a04de04fa0f8fa54_plate0.jpg",
   "truth": "PJRV P",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "P3RV P",
+  "cer": 0.16666666666666666,
+  "confidence": 0.9920051693916321
  },
  {
   "crop_file": "Cars429_png.rf.7b6a6abfd037fcc30982561d0d12c205_plate0.jpg",
   "truth": "KAISER",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KAISER",
+  "cer": 0.0,
+  "confidence": 0.9976420402526855
  },
  {
   "crop_file": "Cars54_png.rf.17fc661e294e9b524410d7099585c872_plate0.jpg",
   "truth": "LTK378",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "LTM 378",
+  "cer": 0.3333333333333333,
+  "confidence": 0.9283626675605774
  },
  {
   "crop_file": "Gambar_105_jpg.rf.da9df810016127590451bcbf4b042485_plate0.jpg",
   "truth": "1438",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "1438 UR",
+  "cer": 0.75,
+  "confidence": 0.9842966794967651
  },
  {
   "crop_file": "Gambar_17_PNG.rf.ea66bfdddafbd0fd4d6a4c1122ec19d6_plate0.jpg",
@@ -366,254 +366,254 @@
  {
   "crop_file": "Gambar_41_PNG.rf.6336957eca3e0ccca8374374f69d91e0_plate0.jpg",
   "truth": "12 HJ",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "H",
+  "cer": 0.8,
+  "confidence": 0.5143774151802063
  },
  {
   "crop_file": "Gambar_42_PNG.rf.027da0c075d283ff60be3255fc167d47_plate0.jpg",
   "truth": "1637 698",
-  "pred": "",
+  "pred": "85 LEO1",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.7122737169265747
  },
  {
   "crop_file": "Gambar_46_PNG.rf.d2d1bd8c2f159181653371ae5f0a1d30_plate0.jpg",
   "truth": "IP",
-  "pred": "",
+  "pred": "S",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.5950825810432434
  },
  {
   "crop_file": "Gambar_48_PNG.rf.b3efa708df768ca843a9bb0cb54e7f28_plate0.jpg",
   "truth": "PEID2 GP",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "1002",
+  "cer": 0.875,
+  "confidence": 0.7123046517372131
  },
  {
   "crop_file": "Gambar_51_PNG.rf.71019efc40a1fb588a0af27fbfb410eb_plate0.jpg",
   "truth": "0322",
-  "pred": "",
+  "pred": "6453",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.999772310256958
  },
  {
   "crop_file": "Gambar_61_PNG.rf.e264640a79403864d60f835ad9a9e5a7_plate0.jpg",
   "truth": "J",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "2915 TZ0",
+  "cer": 8.0,
+  "confidence": 0.935462474822998
  },
  {
   "crop_file": "Gambar_67_PNG.rf.9c377b0222d158ab41cfee4ce8940c0a_plate0.jpg",
   "truth": "6262 SKI",
-  "pred": "",
+  "pred": "DUS 2012",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.6303943991661072
  },
  {
   "crop_file": "Gambar_88_png.rf.dc162334e679e76a7e9a79f8313daebc_plate0.jpg",
   "truth": "B",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "1308",
+  "cer": 4.0,
+  "confidence": 0.9999895095825195
  },
  {
   "crop_file": "Gambar_95_jpg.rf.f2a5a59d82b59d5cb4163cc8dcb7f12b_plate0.jpg",
   "truth": "01224",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR1430XF",
+  "cer": 1.4,
+  "confidence": 0.9787381291389465
  },
  {
   "crop_file": "IMG_20230505_131229_jpg.rf.d62af2134f3bf031012d03b8d413d55c_plate0.jpg",
   "truth": "EA",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 3860 LC",
+  "cer": 4.0,
+  "confidence": 0.9994646906852722
  },
  {
   "crop_file": "IMG_20230505_131259_jpg.rf.b6859237acc1054bc0f525932dc3b429_plate0.jpg",
   "truth": "02",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "2723 YP",
+  "cer": 3.0,
+  "confidence": 0.9089177846908569
  },
  {
   "crop_file": "IMG_20230506_122616_jpg.rf.bdbfe32025a2e58ba9d801a656281ec8_plate0.jpg",
   "truth": "0",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR4483CC",
+  "cer": 8.0,
+  "confidence": 0.9999929070472717
  },
  {
   "crop_file": "IMG_20230506_124220_1_jpg.rf.691b68bc45add879d7dc1940191a9b92_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6054 CC",
+  "cer": 5.0,
+  "confidence": 0.992397665977478
  },
  {
   "crop_file": "IMG_20230506_124433_jpg.rf.fba297335234ea57b30e19daf9ac9c8b_plate0.jpg",
   "truth": "R3369",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 3369 T",
+  "cer": 0.8,
+  "confidence": 0.9987814426422119
  },
  {
   "crop_file": "IMG_20230506_124704_jpg.rf.0953767a0f03bf3c659c59c80d558c8a_plate0.jpg",
   "truth": "27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6740 ZF",
+  "cer": 4.5,
+  "confidence": 0.9977874755859375
  },
  {
   "crop_file": "IMG_20230506_130635_jpg.rf.840a99c572d24449a9ee27793e507d63_plate0.jpg",
   "truth": "03",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2172 RA",
+  "cer": 5.0,
+  "confidence": 0.9831978678703308
  },
  {
   "crop_file": "IMG_20230506_130804_jpg.rf.8445b6ec08c6685cb6e3791d510fb01d_plate0.jpg",
   "truth": "ZF",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6125 ZF",
+  "cer": 4.0,
+  "confidence": 0.9986431002616882
  },
  {
   "crop_file": "IMG_20230506_130950_jpg.rf.857764a783748d89c4b7c3a992d77b41_plate0.jpg",
   "truth": "27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA3613DE",
+  "cer": 4.0,
+  "confidence": 0.9999545812606812
  },
  {
   "crop_file": "IMG_20230506_131006_jpg.rf.93e3a9220b750d400c6257c45b7781fe_plate0.jpg",
   "truth": "27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DA2230TW",
+  "cer": 3.5,
+  "confidence": 0.9672956466674805
  },
  {
   "crop_file": "IMG_20230506_132124_jpg.rf.16e0c2fd98492022517799f189373100_plate0.jpg",
   "truth": "03 28",
-  "pred": "",
+  "pred": "590 HF",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.9969051480293274
  },
  {
   "crop_file": "IMG_20230828_132334_1_jpg.rf.649d180d65d7047c460fc24242ad6d5c_plate0.jpg",
   "truth": "DR 6238 MC",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6238 MC",
+  "cer": 0.0,
+  "confidence": 0.9536026120185852
  },
  {
   "crop_file": "IMG_20230828_132507_1_jpg.rf.d11122ec1b38a7c6b8e239e6f3d3dd26_plate0.jpg",
   "truth": "07 28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2608EA",
+  "cer": 1.2,
+  "confidence": 0.972172737121582
  },
  {
   "crop_file": "IMG_20230828_132657_1_jpg.rf.6a53d25e188bb7bf3a39943c6d75c92c_plate0.jpg",
   "truth": "0827",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2190 JW",
+  "cer": 2.25,
+  "confidence": 0.9928871989250183
  },
  {
   "crop_file": "IMG_20230828_132659_1_jpg.rf.56497f9368d886c1d9d0a31a7e790a69_plate0.jpg",
   "truth": "08 27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2190 JW",
+  "cer": 1.6,
+  "confidence": 0.9971092343330383
  },
  {
   "crop_file": "IMG_20230828_132748_jpg.rf.abd84e4704ff9214a5a67a354e0ca5a9_plate0.jpg",
   "truth": "ZK",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5207 ZK",
+  "cer": 4.0,
+  "confidence": 0.957216739654541
  },
  {
   "crop_file": "IMG_20230828_132907_1_jpg.rf.b21df48e5a04166d9a7398a02c45af93_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 3576 U",
+  "cer": 4.5,
+  "confidence": 0.994719922542572
  },
  {
   "crop_file": "IMG_20230828_133516_jpg.rf.e483ca10a9574b42c8402e0ed44ac54a_plate0.jpg",
   "truth": "05 28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5891 CY",
+  "cer": 1.6,
+  "confidence": 0.9996528625488281
  },
  {
   "crop_file": "IMG_20230828_133540_jpg.rf.51f21723d6284724c44d74417b09eb28_plate0.jpg",
   "truth": "ZK",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5459 ZK",
+  "cer": 4.0,
+  "confidence": 0.9995633959770203
  },
  {
   "crop_file": "IMG_20230828_133618_jpg.rf.8e1ac1194517b24aaa395cffd85c83ef_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 5926 LC",
+  "cer": 4.5,
+  "confidence": 0.9999354481697083
  },
  {
   "crop_file": "IMG_20230828_133935_1_jpg.rf.b132fd05bac41fc7248ee96ee056d055_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "0528",
+  "cer": 2.0,
+  "confidence": 0.9921873211860657
  },
  {
   "crop_file": "IMG_20230828_133949_1_jpg.rf.d290377e4dfcdea40932de5d092cc034_plate0.jpg",
   "truth": "UP",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6264 UP",
+  "cer": 4.0,
+  "confidence": 0.9997249841690063
  },
  {
   "crop_file": "IMG_20230828_134020_jpg.rf.3b84607798aa5d9d8386921c434faee5_plate0.jpg",
   "truth": "DF 386ERD",
-  "pred": "",
+  "pred": "JU",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.9846733808517456
  },
  {
   "crop_file": "IMG_20230828_134205_1_jpg.rf.77d669128276c66bb5f37ac73e71a90b_plate0.jpg",
   "truth": "2 8",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR6308CC",
+  "cer": 2.3333333333333335,
+  "confidence": 0.9995275735855103
  },
  {
   "crop_file": "IMG_20230828_135931_1_jpg.rf.41926e175e4cae4cd926890e5bd3e050_plate0.jpg",
   "truth": "09",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 3527 AJ",
+  "cer": 5.0,
+  "confidence": 0.9735661745071411
  },
  {
   "crop_file": "IMG_20230828_140023_jpg.rf.3a0a72ac6530308451411bfcb9ecbe48_plate0.jpg",
   "truth": "2",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2779 ZI",
+  "cer": 9.0,
+  "confidence": 0.925212025642395
  },
  {
   "crop_file": "IMG_20230828_140113_1_jpg.rf.bb9658455606722b13c6823e94f5a636_plate0.jpg",
   "truth": "0427",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2928 TC",
+  "cer": 2.25,
+  "confidence": 0.9830905795097351
  },
  {
   "crop_file": "IMG_20230828_140135_1_jpg.rf.d69c2c8c92befcf3c64d2bd5ed88da1f_plate0.jpg",
@@ -625,240 +625,240 @@
  {
   "crop_file": "IMG_20230828_140203_1_jpg.rf.1f7fc03e69ed914343a8bbeb9ea90528_plate0.jpg",
   "truth": "YL",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 4919 YL",
+  "cer": 4.0,
+  "confidence": 0.981326699256897
  },
  {
   "crop_file": "IMG_20230828_140335_1_jpg.rf.fce1897e7304271ad750e22a231de593_plate0.jpg",
   "truth": "0228",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5954 CW",
+  "cer": 2.5,
+  "confidence": 0.9933996200561523
  },
  {
   "crop_file": "IMG_20230911_113503_1_jpg.rf.e414ac32607e303762df04848173a539_plate0.jpg",
   "truth": "NEQ",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "0520",
+  "cer": 1.3333333333333333,
+  "confidence": 0.8621679544448853
  },
  {
   "crop_file": "IMG_20230911_113503_1_jpg.rf.e414ac32607e303762df04848173a539_plate1.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR5524CO",
+  "cer": 3.5,
+  "confidence": 0.9335377812385559
  },
  {
   "crop_file": "IMG_20230911_113530_jpg.rf.01ca63a3d119b6f390e94975b95b4ec0_plate0.jpg",
   "truth": "DR 2134 ZH",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2134 ZH",
+  "cer": 0.0,
+  "confidence": 0.9720675349235535
  },
  {
   "crop_file": "IMG_20230911_113623_059_jpg.rf.f4694e5ec0df46dd1c9af1c73c51f98b_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 4385 TY",
+  "cer": 4.0,
+  "confidence": 0.9374717473983765
  },
  {
   "crop_file": "IMG_20230911_113735_1_jpg.rf.520b317b836bdeb143233d2f0b79e68f_plate0.jpg",
   "truth": "02",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6775 HL",
+  "cer": 5.0,
+  "confidence": 0.9998142123222351
  },
  {
   "crop_file": "IMG_20230911_113826_1_jpg.rf.6734c3d609a2ef46f859d86c53cb84fa_plate0.jpg",
   "truth": "DR 2833 AF",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2833 AF",
+  "cer": 0.0,
+  "confidence": 0.9988832473754883
  },
  {
   "crop_file": "IMG_20230911_114114_954_jpg.rf.e0b505a30bd5671d55ef2ac2bb36c555_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5150 ZJ",
+  "cer": 4.0,
+  "confidence": 0.979094386100769
  },
  {
   "crop_file": "IMG_20230911_114147_986_jpg.rf.99ac4fd3a454d1382b29b4e77efd40e4_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 5279 MB",
+  "cer": 4.5,
+  "confidence": 0.9981495141983032
  },
  {
   "crop_file": "IMG_20230911_114214_1_jpg.rf.9d5f98c5d828141ad9a4174e89c26ae5_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5384 CC",
+  "cer": 4.5,
+  "confidence": 0.9964979290962219
  },
  {
   "crop_file": "IMG_20230911_114228_1_jpg.rf.1328b60037ebc3117b9cf86aa5b532e8_plate0.jpg",
   "truth": "27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR4633 EM",
+  "cer": 4.5,
+  "confidence": 0.9590969085693359
  },
  {
   "crop_file": "IMG_20230911_114327_jpg.rf.f5d44c6ad7e5b9a665632f83092d78c3_plate0.jpg",
   "truth": "2958",
-  "pred": "",
+  "pred": "1027",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.9775041341781616
  },
  {
   "crop_file": "IMG_20230911_114529_894_jpg.rf.4d30d68e887c975f8d4ebc673c8180df_plate0.jpg",
   "truth": "EA 5086 HF",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 5086 HF",
+  "cer": 0.0,
+  "confidence": 0.9809610247612
  },
  {
   "crop_file": "IMG_20230911_114541_380_jpg.rf.2e2ab6f41c14eb7962dc69cc3610da6a_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 3807 EA",
+  "cer": 4.5,
+  "confidence": 0.9873630404472351
  },
  {
   "crop_file": "IMG_20230911_114609_1_jpg.rf.f1243bda94fc8e3406a2a17bd4cfd804_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6274 MJ",
+  "cer": 4.5,
+  "confidence": 0.9823583364486694
  },
  {
   "crop_file": "IMG_20230911_114649_249_jpg.rf.8d90f09a361e684453956425baa46b70_plate0.jpg",
   "truth": "ZH",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "OR 5840 ZH",
+  "cer": 4.0,
+  "confidence": 0.9495003819465637
  },
  {
   "crop_file": "IMG_20230911_114734_204_jpg.rf.b4a7385d736f38e7b14364f7554586e9_plate0.jpg",
   "truth": "03",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6843 CC",
+  "cer": 4.5,
+  "confidence": 0.9710879325866699
  },
  {
   "crop_file": "IMG_20230911_114841_701_jpg.rf.ad5bc2361b76790f09d8eecc2eca2b7c_plate0.jpg",
   "truth": "3812",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "OR 382 EN",
+  "cer": 1.75,
+  "confidence": 0.7092487215995789
  },
  {
   "crop_file": "IMG_20230911_114933_1_jpg.rf.e645d2687acefb6ed9250698ef5e5b6c_plate0.jpg",
   "truth": "6317",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EA 6317 W",
+  "cer": 1.25,
+  "confidence": 0.9766020178794861
  },
  {
   "crop_file": "IMG_20230911_114936_534_jpg.rf.05f5e3d8301a8a315e17a83d6da51e3f_plate0.jpg",
   "truth": "DR 2671EM",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2671 EN",
+  "cer": 0.2222222222222222,
+  "confidence": 0.9996126294136047
  },
  {
   "crop_file": "IMG_20230911_115332_1_jpg.rf.b51b4a505658a3822aea5b3a382ba00c_plate0.jpg",
   "truth": "05 28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR1781CE",
+  "cer": 1.4,
+  "confidence": 0.9604556560516357
  },
  {
   "crop_file": "IMG_20230911_115406_jpg.rf.d8092749b7886498b0c1816dd7ae06d1_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6447 21",
+  "cer": 4.0,
+  "confidence": 0.9920675754547119
  },
  {
   "crop_file": "IMG_20230911_115456_1_jpg.rf.33b407d5b0b14eb554f157f6eb0bc941_plate0.jpg",
   "truth": "2579",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "2",
+  "cer": 0.75,
+  "confidence": 0.8695879578590393
  },
  {
   "crop_file": "IMG_20230911_115457_070_jpg.rf.0c2feaa489fc1bbc39d3ab8eef932f79_plate0.jpg",
   "truth": "DR 6703 27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "U428",
+  "cer": 0.9,
+  "confidence": 0.8092213869094849
  },
  {
   "crop_file": "IMG_20230911_115535_1_jpg.rf.b02bfe3a91f849c93b567e7b961992da_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 5070 ZF",
+  "cer": 4.0,
+  "confidence": 0.990916907787323
  },
  {
   "crop_file": "IMG_20230911_115548_1_jpg.rf.de8c34d29474527d375b7790ac2cb890_plate0.jpg",
   "truth": "228",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6513 E0",
+  "cer": 3.3333333333333335,
+  "confidence": 0.9888347387313843
  },
  {
   "crop_file": "IMG_20230911_131508_jpg.rf.87e82bb58a25ad6e1298e78bc9e552be_plate0.jpg",
   "truth": "DR3126",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "OR3126 FM",
+  "cer": 0.6666666666666666,
+  "confidence": 0.8978630900382996
  },
  {
   "crop_file": "IMG_20230911_131606_229_jpg.rf.bafc99c47bb95ea16c3ee565f1b3e040_plate0.jpg",
   "truth": "DR 6083 CT",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6083 CT",
+  "cer": 0.0,
+  "confidence": 0.9992494583129883
  },
  {
   "crop_file": "IMG_20230911_131701_646_jpg.rf.739b22902cbee8cf6d0b8d8b29d2a63a_plate0.jpg",
   "truth": "0327",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2598 YC",
+  "cer": 2.25,
+  "confidence": 0.9030726552009583
  },
  {
   "crop_file": "IMG_20230911_131705_468_jpg.rf.2d021d2dcf12a2a46354072269987b3b_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2598 YC",
+  "cer": 4.0,
+  "confidence": 0.943797767162323
  },
  {
   "crop_file": "IMG_20230911_131932_jpg.rf.271dc54ba0a504793286bfa71a9079ad_plate0.jpg",
   "truth": "12 27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DK 6468 EK",
+  "cer": 1.8,
+  "confidence": 0.9966589212417603
  },
  {
   "crop_file": "IMG_20230911_131937_359_jpg.rf.09ce4d4c2d8ef9cda43119b0da2a673c_plate0.jpg",
   "truth": "DR 6768",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6768 UT",
+  "cer": 0.42857142857142855,
+  "confidence": 0.9934850931167603
  },
  {
   "crop_file": "N102_jpeg.rf.3699951fc3d6463f1cb841989389d16f_plate0.jpg",
   "truth": "MH 02BM5048",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH02BM5048",
+  "cer": 0.09090909090909091,
+  "confidence": 0.9999700784683228
  },
  {
   "crop_file": "N103_jpeg.rf.aec50ed9255ad019a168447ed4255e22_plate0.jpg",
@@ -870,9 +870,9 @@
  {
   "crop_file": "N109_jpeg.rf.5ea58bf97ce17ec7ff3877fec4579c67_plate0.jpg",
   "truth": "TS 09",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EB 1458",
+  "cer": 1.2,
+  "confidence": 0.9950617551803589
  },
  {
   "crop_file": "N120_jpeg.rf.39daafe4759af8544b72ed8865e41769_plate0.jpg",
@@ -884,149 +884,149 @@
  {
   "crop_file": "N123_jpeg.rf.9c168e414d1c49429411ecaafe4eb9f7_plate0.jpg",
   "truth": "IND",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "G107BR1339",
+  "cer": 3.3333333333333335,
+  "confidence": 0.9581643342971802
  },
  {
   "crop_file": "N135_jpeg.rf.95168c7be95795b8b75908b347476255_plate0.jpg",
   "truth": "GJW15A138",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "GJW115A1138",
+  "cer": 0.2222222222222222,
+  "confidence": 0.9995386004447937
  },
  {
   "crop_file": "N150_jpeg.rf.1d8e19354ec0989a69db79dd3deb0aff_plate0.jpg",
   "truth": "HH14E43498",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH14EU3498",
+  "cer": 0.2,
+  "confidence": 0.9999530911445618
  },
  {
   "crop_file": "N16_jpeg.rf.a65ae94422a49d2fe6945ee24fb54e1c_plate0.jpg",
   "truth": "XFT96",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "7XFT96",
+  "cer": 0.2,
+  "confidence": 0.99834144115448
  },
  {
   "crop_file": "N184_jpeg.rf.a8e888bc0a505d1862d42acc4a4af397_plate0.jpg",
   "truth": "19759",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "GJ305J09759",
+  "cer": 1.4,
+  "confidence": 0.8152355551719666
  },
  {
   "crop_file": "N192_jpeg.rf.ed1e9bb839126a24af0ed96b7cb6bc14_plate0.jpg",
   "truth": "KLSZE 964",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL 53E 964",
+  "cer": 0.3333333333333333,
+  "confidence": 0.9699395298957825
  },
  {
   "crop_file": "N199_jpeg.rf.7215ca729f86d5901efe65eb5e2bf44f_plate0.jpg",
   "truth": "SURNFSRAN",
   "pred": "",
   "cer": 1.0,
-  "confidence": 0.0
+  "confidence": 0.3369772136211395
  },
  {
   "crop_file": "N200_jpeg.rf.715bd004112a92b058fea6cbbdb9ddc2_plate0.jpg",
   "truth": "KLOIKLKLO1",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL01KLKL01",
+  "cer": 0.3,
+  "confidence": 0.9681220054626465
  },
  {
   "crop_file": "N207_jpeg.rf.cb1e01ced25b93a0fe746c87f429d407_plate0.jpg",
   "truth": "MK 20 EE 0943",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "EE 0943",
+  "cer": 0.46153846153846156,
+  "confidence": 0.9970828890800476
  },
  {
   "crop_file": "N216_jpeg.rf.988fd746f1711be32c84ca140453cee9_plate0.jpg",
   "truth": "KL10AV2814",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL 10 AW 2814",
+  "cer": 0.4,
+  "confidence": 0.9986960887908936
  },
  {
   "crop_file": "N226_jpeg.rf.3fac7fc55a83fec9cff4562a4267c381_plate0.jpg",
   "truth": "KL 1GAV 6342",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL10AV6342",
+  "cer": 0.25,
+  "confidence": 0.9884625673294067
  },
  {
   "crop_file": "N233_jpeg.rf.ab0c7d0a9347d06ee7864b153d9186d9_plate0.jpg",
   "truth": "TN99F2378",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "TN99F2378",
+  "cer": 0.0,
+  "confidence": 0.998467206954956
  },
  {
   "crop_file": "N234_jpeg.rf.816279238b272500cb77e06bf70bb23f_plate0.jpg",
   "truth": "HR 26 TC5056",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "HR 26 TC 5656",
+  "cer": 0.16666666666666666,
+  "confidence": 0.9941891431808472
  },
  {
   "crop_file": "N23_jpeg.rf.1ba9e4a32fc856925fb20dd8bf19ab1d_plate0.jpg",
   "truth": "B4 DLEJ",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "84PLFJ",
+  "cer": 0.5714285714285714,
+  "confidence": 0.9824343323707581
  },
  {
   "crop_file": "N34_jpeg.rf.390c3a466537efe89acc86c41b905048_plate0.jpg",
   "truth": "PK OISL",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "PK015L",
+  "cer": 0.5714285714285714,
+  "confidence": 0.9798074960708618
  },
  {
   "crop_file": "N40_jpeg.rf.50785514f89cdd66e35b6a609f31d59a_plate0.jpg",
   "truth": "IND",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DL6CAB123X",
+  "cer": 3.3333333333333335,
+  "confidence": 0.9996864199638367
  },
  {
   "crop_file": "N69_jpeg.rf.87328567428ca55ceead7b443f455783_plate0.jpg",
   "truth": "8892",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH46Z889",
+  "cer": 1.5,
+  "confidence": 0.9957624673843384
  },
  {
   "crop_file": "N84_jpeg.rf.7ca888e1a6a7da3a7563c623e6fd2326_plate0.jpg",
   "truth": "1351",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KA03 1351",
+  "cer": 1.25,
+  "confidence": 0.9944137930870056
  },
  {
   "crop_file": "N93_jpeg.rf.c787d476d89f113f90384c068a71b451_plate0.jpg",
   "truth": "5270",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "KL49H",
+  "cer": 1.25,
+  "confidence": 0.9999410510063171
  },
  {
   "crop_file": "N95_jpeg.rf.ee547bcc8f6f4e5164031d53cffaa28d_plate0.jpg",
   "truth": "MHT2",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH12",
+  "cer": 0.25,
+  "confidence": 0.99988853931427
  },
  {
   "crop_file": "N99_jpeg.rf.c3fa5f300623baa1520d08d24197884d_plate0.jpg",
   "truth": "MHD3BS7778",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "MH03BS7778",
+  "cer": 0.1,
+  "confidence": 0.9977768063545227
  },
  {
   "crop_file": "Scross_jpg.rf.6db31aaea650ad92cce3092dce369d02_plate0.jpg",
@@ -1038,44 +1038,44 @@
  {
   "crop_file": "WhatsApp-Image-2023-05-09-at-11-32-24_jpg.rf.51848e2fe5d9dfb5e8a34c713ba017f2_plate0.jpg",
   "truth": "27",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DK 4603 LP",
+  "cer": 5.0,
+  "confidence": 0.9587318301200867
  },
  {
   "crop_file": "WhatsApp-Image-2023-05-12-at-10-17-50_jpg.rf.b77c8f22d2efc4e13fb23e6c92e7d3b0_plate0.jpg",
   "truth": "03 28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6863 CC",
+  "cer": 1.6,
+  "confidence": 0.9975160360336304
  },
  {
   "crop_file": "WhatsApp-Image-2023-05-12-at-10-17-51_2_jpg.rf.02c362293a207d85a48efe2f306c9dc6_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 6939 CC",
+  "cer": 4.0,
+  "confidence": 0.996120274066925
  },
  {
   "crop_file": "WhatsApp-Image-2023-05-12-at-10-17-52_jpg.rf.c66ca221f9b7b97f0ee6594204d78fd7_plate0.jpg",
   "truth": "6175",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "0R6175M",
+  "cer": 0.75,
+  "confidence": 0.8249801397323608
  },
  {
   "crop_file": "WhatsApp-Image-2023-05-12-at-10-17-55_1_jpg.rf.87c968bf6f27043fbfc9c986037de792_plate0.jpg",
   "truth": "28",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 2176 CY",
+  "cer": 4.5,
+  "confidence": 0.9632903933525085
  },
  {
   "crop_file": "WhatsApp-Image-2023-05-12-at-10-17-57_jpg.rf.9b108879da11bfce376d3b2d4a96f2d2_plate0.jpg",
   "truth": "DR",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 3747 ZH",
+  "cer": 4.0,
+  "confidence": 0.9996329545974731
  },
  {
   "crop_file": "WhatsApp-Image-2023-05-12-at-10-17-59_jpg.rf.9d5fde24d6f2e586d9f0c4383c39ae67_plate0.jpg",
@@ -1087,8 +1087,8 @@
  {
   "crop_file": "WhatsApp-Image-2023-08-26-at-18-00-39_jpg.rf.88642ac6b4a1d5a13371b169181ec38f_plate0.jpg",
   "truth": "DR 1378 CC",
-  "pred": "",
-  "cer": 1.0,
-  "confidence": 0.0
+  "pred": "DR 1378 CC",
+  "cer": 0.0,
+  "confidence": 0.9920039176940918
  }
 ]

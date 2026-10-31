@@ -1,0 +1,50 @@
+[
+ {
+  "engine": "easyocr",
+  "preprocess": {
+   "use_clahe": false,
+   "use_upscale": false,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.17307692307692307,
+  "cer_mean": 1.5774265798304254
+ },
+ {
+  "engine": "easyocr",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": false,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.16666666666666666,
+  "cer_mean": 1.6152621239159703
+ },
+ {
+  "engine": "easyocr",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": true,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.48717948717948717,
+  "cer_mean": 1.393398962148962
+ },
+ {
+  "engine": "easyocr",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": true,
+   "use_binarize": true,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.12179487179487179,
+  "cer_mean": 1.5358347315078082
+ }
+]

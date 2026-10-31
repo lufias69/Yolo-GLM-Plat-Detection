@@ -1,0 +1,50 @@
+[
+ {
+  "engine": "paddleocr",
+  "preprocess": {
+   "use_clahe": false,
+   "use_upscale": false,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.09615384615384616,
+  "cer_mean": 1.9381191458114533
+ },
+ {
+  "engine": "paddleocr",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": false,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.07692307692307693,
+  "cer_mean": 1.9718359987590748
+ },
+ {
+  "engine": "paddleocr",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": true,
+   "use_binarize": false,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.07692307692307693,
+  "cer_mean": 1.95977329294637
+ },
+ {
+  "engine": "paddleocr",
+  "preprocess": {
+   "use_clahe": true,
+   "use_upscale": true,
+   "use_binarize": true,
+   "use_denoise": false
+  },
+  "n": 156,
+  "exact_match": 0.10256410256410256,
+  "cer_mean": 2.0235988192718954
+ }
+]

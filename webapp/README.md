@@ -50,6 +50,9 @@ diproses. Model `best.pt` bawaan riset terdaftar otomatis sebagai model aktif aw
 - `CONF_STORED` (0.01): deteksi disimpan pada ambang ini supaya kurva ROC dapat direproduksi.
 - `OCR_ENGINE`/`OCR_GPU`/`OCR_PREPROCESS`: identik dengan script riset
   (EasyOCR CPU, CLAHE + upscale).
+- `OCR_ENGINE: 'glm-ocr'` memakai GLM-OCR via Ollama lokal (`glm-ocr:q8_0`,
+  server harus hidup). Karena VLM tidak memberi confidence, pemilih orientasi
+  memakai skor "bentuk plat" (`anpr.ocr_engines.plate_shape_score`).
 
 ## Rotasi otomatis
 

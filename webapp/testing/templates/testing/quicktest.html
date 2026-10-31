@@ -103,6 +103,7 @@
           <div class="qt-head-row">
             <span class="qt-sub" style="margin:0">Hasil inference</span>
             <span class="model">model <strong>{{ result.model_name }}</strong> ·
+              ocr <strong>{{ result.ocr_engine|default:'easyocr' }}</strong> ·
               {{ result.latency.total_ms }} ms</span>
           </div>
 

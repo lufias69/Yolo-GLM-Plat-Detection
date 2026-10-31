@@ -101,7 +101,9 @@ class InferenceService:
             with self._load_lock:
                 if self._engine is None:
                     from anpr.ocr_engines import get_engine
-                    self._engine = get_engine(settings.ANPR['OCR_ENGINE'], gpu=settings.ANPR['OCR_GPU'])
+                    name = settings.ANPR['OCR_ENGINE']
+                    kw = {'gpu': settings.ANPR['OCR_GPU']} if name == 'easyocr' else {}
+                    self._engine = get_engine(name, **kw)
         return self._engine
 
     def detect(self, image_bgr: np.ndarray, model=None) -> list:
@@ -259,6 +261,7 @@ class InferenceService:
             'detections': detections,
             'operational_boxes': operational,
             'rotation': int(rotation),
+            'ocr_engine': settings.ANPR['OCR_ENGINE'],
             'latency': {
                 'detection_ms': round(detection_ms, 2),
                 'ocr_ms': round(ocr_ms, 2),

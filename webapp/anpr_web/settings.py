@@ -147,7 +147,7 @@ ANPR = {
     'WEIGHTS': str(RESEARCH_ROOT / 'runs' / 'detect' / 'plate_detector_yolov8n_gpu_final' / 'weights' / 'best.pt'),
     'CONF_STORED': 0.01,
     'CONF_OPERATIONAL': 0.25,
-    'OCR_ENGINE': 'easyocr',
+    'OCR_ENGINE': 'easyocr',  # opsi: 'glm-ocr' (Ollama lokal), 'paddleocr', 'tesseract'
     'OCR_GPU': False,
     'OCR_PREPROCESS': {'use_clahe': True, 'use_upscale': True, 'use_binarize': False, 'use_denoise': False},
     'MEDIA_ROOT': str(MEDIA_ROOT),

@@ -100,8 +100,12 @@ class Annotation(models.Model):
         return True
 
     def clean(self):
-        if self.ocr_ok == 'SALAH' and not self.gt_text:
+        if self.ocr_ok == 'SALAH' and not (self.gt_text or '').strip():
             raise ValidationError({'gt_text': 'Bila karakter terbaca SALAH, teks plat yang sebenarnya wajib diisi.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class ConsistencyRun(models.Model):

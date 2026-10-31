@@ -83,3 +83,13 @@ class AnnotateViewTest(TestCase):
         resp = self.client.post(f'/photo/{photo.id}/annotate/', data)
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(Annotation.objects.get(photo=photo).target_detection_index, 0)
+
+
+class AnnotationModelValidationOnSaveTest(TestCase):
+    def test_direct_create_bypassing_form_is_rejected(self):
+        from django.core.exceptions import ValidationError
+        batch = TestBatch.objects.create(name='BX')
+        p = done_photo(batch)
+        with self.assertRaises(ValidationError):
+            Annotation.objects.create(photo=p, gt_presence='ADA', detected_ok='BENAR',
+                                      ocr_ok='SALAH', gt_text='')

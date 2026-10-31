@@ -160,9 +160,11 @@ def batch_export_xlsx(request, batch_id):
 
 
 def _consistency_eligible(photo):
+    """Konsistensi butuh baseline box yang bermakna: foto selesai, penilaian
+    lengkap tidak stale, DAN sistem pernah mendeteksi pada threshold operasional."""
     ann = getattr(photo, 'annotation', None)
     return (photo.status == 'done' and ann is not None and ann.is_complete()
-            and not ann.stale)
+            and not ann.stale and bool(photo.operational_boxes))
 
 
 def photo_consistency(request, photo_id):

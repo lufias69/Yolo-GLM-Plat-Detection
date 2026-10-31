@@ -173,3 +173,16 @@ class ConsistencyViewsTest(TestCase):
         data = resp.json()
         self.assertEqual(data['status'], 'running')
         self.assertEqual(data['done_iterations'], 1)
+
+
+class EligibilityBaselineTest(TestCase):
+    def test_zero_detection_photo_not_eligible(self):
+        client = Client()
+        batch = TestBatch.objects.create(name='B')
+        sr = dict(SR, detections=[], operational_boxes=[])
+        p = Photo.objects.create(batch=batch, original_name='fn.jpg', status='done',
+                                 system_result=sr)
+        Annotation.objects.create(photo=p, gt_presence='ADA', detected_ok='GAGAL',
+                                  ocr_ok='TAK_TERDETEKSI')
+        resp = client.post(f'/photo/{p.id}/consistency/start/', {'n': 10})
+        self.assertEqual(ConsistencyRun.objects.count(), 0)

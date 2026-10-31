@@ -280,3 +280,45 @@ class OcrConfidenceTiebreakTest(TestCase):
         res = inference.get_service().process_file(Path(self.path), preferred_rotation=180)
         self.assertEqual(res['rotation'], 180)
         self.assertEqual(m.calls, 1)  # hanya orientasi yang diminta yang dicoba
+
+
+class FakeMultiEngine:
+    def __init__(self, name, frags):
+        self.name = name
+        self._frags = frags
+
+    def recognize_fragments(self, image, preprocess=None):
+        return list(self._frags)
+
+
+class OcrAllTest(TestCase):
+    def setUp(self):
+        img = np.zeros((100, 200, 3), dtype=np.uint8)
+        fd, self.path = tempfile.mkstemp(suffix='.jpg')
+        os.close(fd)
+        cv2.imwrite(self.path, img)
+        self.addCleanup(lambda: Path(self.path).unlink(missing_ok=True))
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_ocr_all_returns_pick_per_engine(self):
+        svc = InferenceService.__new__(InferenceService)
+        svc._model = FakeYOLO([[10, 10, 190, 60]], [0.9])
+        import threading
+        svc._models = {}
+        svc._load_lock = threading.Lock()
+        engines = {
+            'easyocr': FakeMultiEngine('easyocr', [('DR 1282 AS', 0.4), ('26', 0.9)]),
+            'paddleocr': FakeMultiEngine('paddleocr', [('DR 1282 AS', 0.99)]),
+            'tesseract': FakeMultiEngine('tesseract', [('DR1282AS', 1.0)]),
+            'glm-ocr': FakeMultiEngine('glm-ocr', [('DR 1282 AS', 0.9), ('05 28', 0.8)]),
+        }
+        import anpr.ocr_engines as oe
+        orig = oe.get_engine
+        oe.get_engine = lambda name, **kw: engines[name]
+        self.addCleanup(setattr, oe, 'get_engine', orig)
+        out = svc.ocr_all(Path(self.path))
+        self.assertEqual(set(out), set(engines))
+        for name, r in out.items():
+            expected = 'DR1282AS' if name == 'tesseract' else 'DR 1282 AS'
+            self.assertEqual(r['text'], expected, name)  # pick by plate shape
+            self.assertIn('conf', r)

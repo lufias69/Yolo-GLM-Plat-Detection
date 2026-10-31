@@ -57,3 +57,23 @@ class QuickTestViewTest(TestCase):
         svc.process_file.return_value = dict(RESULT)
         self.client.post('/uji-cepat/', {'image': jpg()})
         self.assertEqual(Photo.objects.count(), 0)
+
+
+class QuickTestAllEnginesTest(TestCase):
+    @patch('testing.views.get_service')
+    def test_comparison_table_rendered(self, gs):
+        svc = gs.return_value
+        svc.process_file.return_value = dict(RESULT)
+        svc.ocr_all.return_value = {
+            'easyocr': {'text': 'DR 1282 AS', 'conf': 0.32, 'fragments': [['DR 1282 AS', 0.32]]},
+            'paddleocr': {'text': 'DR 1282 AS', 'conf': 0.99, 'fragments': [['DR 1282 AS', 0.99]]},
+            'tesseract': {'text': '', 'conf': 0.0, 'fragments': []},
+            'glm-ocr': {'text': 'DR 1282 AS', 'conf': 0.9, 'fragments': [['DR 1282 AS', 0.9]]},
+        }
+        from django.test import Client
+        resp = Client().post('/uji-cepat/', {'image': jpg()})
+        body = resp.content.decode()
+        self.assertIn('Semua engine OCR pada crop target', body)
+        for eng in ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr'):
+            self.assertIn(eng, body)
+        svc.ocr_all.assert_called_once()

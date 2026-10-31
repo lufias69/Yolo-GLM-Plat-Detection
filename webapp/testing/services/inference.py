@@ -274,6 +274,48 @@ class InferenceService:
         }
 
 
+    def ocr_all(self, path: Path, box=None) -> dict:
+        """Run every registered OCR engine on the crop and return per-engine
+        picks, for side-by-side comparison (uji cepat)."""
+        from anpr.ocr_engines import get_engine, plate_shape_score
+        image = cv2.imread(str(path))
+        if image is None:
+            raise InferenceError(f'Gambar tidak dapat dibaca: {path.name}')
+        if box is not None:
+            x1, y1, x2, y2 = [int(v) for v in box]
+            image = image[y1:y2, x1:x2]
+        out = {}
+        for name in ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr'):
+            try:
+                if name == 'paddleocr':
+                    engine = self._cached_engine(name, enable_mkldnn=False)
+                elif name == 'easyocr':
+                    engine = self._cached_engine(name, gpu=settings.ANPR['OCR_GPU'])
+                else:
+                    engine = self._cached_engine(name)
+                frags = engine.recognize_fragments(image, preprocess=settings.ANPR['OCR_PREPROCESS'])
+                if frags:
+                    text, conf = max(frags, key=lambda f: plate_shape_score(f[0]))
+                    if plate_shape_score(text) == 0.0:
+                        text, conf = max(frags, key=lambda f: f[1])
+                else:
+                    text, conf = '', 0.0
+                out[name] = {'text': text, 'conf': round(float(conf), 3),
+                             'fragments': [[t, round(float(c), 3)] for t, c in frags]}
+            except Exception as exc:
+                out[name] = {'text': '', 'conf': 0.0, 'fragments': [],
+                             'error': str(exc)[:200]}
+        return out
+
+    def _cached_engine(self, name, **kw):
+        with self._load_lock:
+            key = f'engine:{name}'
+            if self._models.get(key) is None:
+                from anpr.ocr_engines import get_engine
+                self._models[key] = get_engine(name, **kw)
+            return self._models[key]
+
+
 _service = None
 _service_lock = threading.Lock()
 

@@ -152,6 +152,28 @@
               <div class="line1"><span class="ocr">Tidak ada deteksi pada ambang simpan (conf ≥ 0,01).</span></div></div>
           {% endfor %}
         </div>
+
+        {% if result.ocr_all %}
+        <div class="qt-card" style="margin-top:1.1rem">
+          <div class="qt-sub" style="margin-top:0">Semua engine OCR pada crop target</div>
+          <table class="table table-sm mb-0" style="font-size:.88rem">
+            <thead><tr><th>Engine</th><th>Teks terpilih</th><th>Skor</th><th>Fragmen mentah</th></tr></thead>
+            <tbody>
+            {% for e in result.ocr_all %}
+              <tr>
+                <td><strong>{{ e.engine }}</strong></td>
+                <td>{% if e.error %}<span class="text-danger small">{{ e.error }}</span>
+                    {% else %}<code>{{ e.text|default:'—' }}</code>{% endif %}</td>
+                <td class="conf">{{ e.conf|floatformat:2 }}</td>
+                <td class="small text-muted">{% for f in e.fragments %}{{ f.0 }} ({{ f.1 }}){% if not forloop.last %} · {% endif %}{% empty %}—{% endfor %}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          <p class="small text-muted mb-0 mt-2">"Teks terpilih" = fragmen yang paling mirip format plat Indonesia.
+            GLM-OCR memakai skor bentuk plat (bukan confidence); engine yang error tidak menghentikan yang lain.</p>
+        </div>
+        {% endif %}
       {% else %}
         <div class="qt-empty">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">

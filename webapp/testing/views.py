@@ -312,6 +312,15 @@ def quick_test(request):
                         with open(ann_path, 'rb') as af:
                             result['annotated_b64'] = base64.b64encode(af.read()).decode()
                         os.remove(ann_path)
+                    # bandingkan semua engine OCR pada crop deteksi target
+                    ops = result.get('operational_boxes') or []
+                    if ops:
+                        target = next((d for d in result['detections']
+                                       if d['index'] == ops[0]), None)
+                        if target:
+                            alls = get_service().ocr_all(Path(tmp_path), box=target['box'])
+                            result['ocr_all'] = [
+                                {'engine': name, **vals} for name, vals in alls.items()]
                 except InferenceError as exc:
                     error = str(exc)
             finally:

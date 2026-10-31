@@ -19,14 +19,38 @@ class BaseOCREngine(ABC):
         """Return (normalized_text, confidence)."""
         raise NotImplementedError
 
+    def recognize_fragments(self, image: np.ndarray,
+                            preprocess: Optional[dict] = None) -> list:
+        """All text fragments as (normalized_text, confidence). Default: the
+        single recognize() result as a one-element list."""
+        return [self.recognize(image, preprocess)]
+
 
 class TesseractEngine(BaseOCREngine):
     name = 'tesseract'
 
     def __init__(self, config: str = '--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
         import pytesseract
+        self._locate_binary(pytesseract)
         self.pytesseract = pytesseract
         self.config = config
+
+    @staticmethod
+    def _locate_binary(pytesseract):
+        """Point pytesseract at a known local install when not on PATH."""
+        if pytesseract.pytesseract.tesseract_cmd != 'tesseract':
+            return
+        from pathlib import Path
+        candidates = [
+            Path.home() / 'Tools' / 'tesseract' / 'tesseract.exe',
+            Path('C:/Program Files/Tesseract-OCR/tesseract.exe'),
+        ]
+        for c in candidates:
+            if c.exists():
+                import os
+                pytesseract.pytesseract.tesseract_cmd = str(c)
+                os.environ.setdefault('TESSDATA_PREFIX', str(c.parent / 'tessdata'))
+                return
 
     def recognize(self, image: np.ndarray, preprocess: Optional[dict] = None) -> Tuple[str, float]:
         img = preprocessing.pipeline(image, **(preprocess or {}))
@@ -42,56 +66,57 @@ class EasyOCREngine(BaseOCREngine):
         import easyocr
         self.reader = easyocr.Reader(languages or ['en'], gpu=gpu)
 
-    def recognize(self, image: np.ndarray, preprocess: Optional[dict] = None) -> Tuple[str, float]:
+    def recognize_fragments(self, image: np.ndarray, preprocess: Optional[dict] = None) -> list:
         import cv2
         img = preprocessing.pipeline(image, **(preprocess or {}))
         if len(img.shape) == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         results = self.reader.readtext(img)
-        if not results:
+        return [(postprocessing.normalize_plate_text(r[1]), float(r[2])) for r in results]
+
+    def recognize(self, image: np.ndarray, preprocess: Optional[dict] = None) -> Tuple[str, float]:
+        frags = self.recognize_fragments(image, preprocess)
+        if not frags:
             return '', 0.0
-        # results: [(bbox, text, confidence), ...]
-        best = max(results, key=lambda r: r[2])
-        text, conf = best[1], best[2]
-        return postprocessing.normalize_plate_text(text), conf
+        # legacy behavior: single highest-confidence fragment
+        return max(frags, key=lambda f: f[1])
 
 
 class PaddleOCREngine(BaseOCREngine):
     name = 'paddleocr'
 
-    def __init__(self, lang: str = 'en'):
+    def __init__(self, lang: str = 'en', enable_mkldnn: bool = True):
         from paddleocr import PaddleOCR
-        self.ocr = PaddleOCR(lang=lang)
+        kw = {'lang': lang}
+        if not enable_mkldnn:
+            kw['enable_mkldnn'] = False
+        self.ocr = PaddleOCR(**kw)
 
-    def recognize(self, image: np.ndarray, preprocess: Optional[dict] = None) -> Tuple[str, float]:
+    def recognize_fragments(self, image: np.ndarray, preprocess: Optional[dict] = None) -> list:
         import cv2
-        import tempfile
         img = preprocessing.pipeline(image, **(preprocess or {}))
         if len(img.shape) == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        # PaddleOCR expects a file path
-        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
-            tmp_path = tmp.name
-        cv2.imwrite(tmp_path, img)
-        result = self.ocr.predict(tmp_path)
-        Path(tmp_path).unlink(missing_ok=True)
-        if result is None:
-            return '', 0.0
-        # result may be a list of dicts; extract text and score
+        result = self.ocr.predict(img)
         lines = []
-        if isinstance(result, list):
-            for item in result:
-                if isinstance(item, dict):
-                    rec_text = item.get('rec_text') or item.get('text', '')
-                    rec_score = item.get('rec_score', 0.0) or item.get('score', 0.0)
-                    lines.append((rec_text, rec_score))
-                elif isinstance(item, (list, tuple)) and len(item) == 2:
-                    lines.append(item)
-        if not lines:
+        for item in result or []:
+            d = dict(item)
+            texts = d.get('rec_texts')          # PaddleOCR 3.x
+            scores = d.get('rec_scores')
+            if texts is not None:
+                lines += [(t, float(s)) for t, s in zip(texts, scores or [])]
+            else:                                # API lama
+                t = d.get('rec_text') or d.get('text', '')
+                if t:
+                    lines.append((t, float(d.get('rec_score') or d.get('score') or 0.0)))
+        return [(postprocessing.normalize_plate_text(t), c) for t, c in lines if t and t.strip()]
+
+    def recognize(self, image: np.ndarray, preprocess: Optional[dict] = None) -> Tuple[str, float]:
+        frags = self.recognize_fragments(image, preprocess)
+        if not frags:
             return '', 0.0
-        best = max(lines, key=lambda r: r[1])
-        text, conf = best[0], best[1]
-        return postprocessing.normalize_plate_text(text), conf
+        # legacy behavior: single highest-confidence fragment
+        return max(frags, key=lambda f: f[1])
 
 
 def plate_shape_score(text: str) -> float:

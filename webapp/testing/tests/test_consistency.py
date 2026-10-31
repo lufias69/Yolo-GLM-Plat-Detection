@@ -22,13 +22,44 @@ class StubService:
     """detect: always one box IoU=1.0 with baseline, conf 0.9.
     OCR: alternates texts on even/odd iterations so distribution is checkable."""
 
+    conf = 0.9
+
     def detect(self, image):
-        return [{'index': 0, 'box': [10, 10, 60, 40], 'confidence': 0.9}]
+        return [{'index': 0, 'box': [10, 10, 60, 40], 'confidence': self.conf}]
 
     def recognize_crop(self, image, box):
         return ('DR 1282 AS' if self.i % 4 else 'DR 1282 A5'), 0.8
 
     i = 0
+
+
+class ThresholdTest(TestCase):
+    """A run counts as detected only at/above the operational threshold (0.25),
+    matching the batch pipeline — spec 7.4."""
+
+    def setUp(self):
+        self.batch = TestBatch.objects.create(name='B')
+        from django.core.files.base import ContentFile
+        buf = BytesIO()
+        Image.fromarray(np.zeros((100, 100, 3), dtype=np.uint8)).save(buf, format='JPEG')
+        self.photo = Photo.objects.create(batch=self.batch, original_name='f.jpg',
+                                          status='done', system_result=SR)
+        self.photo.image.save('photos/f.jpg', ContentFile(buf.getvalue()), save=True)
+        Annotation.objects.create(photo=self.photo, gt_presence='ADA', detected_ok='BENAR',
+                                  ocr_ok='BENAR', target_detection_index=0)
+
+    def test_low_conf_boxes_not_detected(self):
+        run = ConsistencyRun.objects.create(photo=self.photo, n=4, seed=1)
+
+        class LowConf(StubService):
+            conf = 0.14
+
+        with patch.object(consistency, 'get_service', lambda: LowConf()):
+            with patch.object(consistency, 'perturb', lambda img, rng: img):
+                consistency.execute(run)
+        run.refresh_from_db()
+        self.assertEqual(run.summary['detected_x_of_n'], '0/4')
+        self.assertEqual(run.summary['conf_mean'], None)
 
 
 class ExecuteTest(TestCase):

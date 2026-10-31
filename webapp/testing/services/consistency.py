@@ -68,6 +68,9 @@ def execute(run):
             rng = np.random.default_rng(run.seed + i)
             variant = perturb(image, rng)
             dets = service.detect(variant)
+            from django.conf import settings
+            dets = [d for d in dets
+                    if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
             item = {'i': i, 'detected': False, 'confidence': None, 'iou': 0.0,
                     'ocr_text': '', 'same_as_baseline': False, 'same_as_gt': False}
             if dets:

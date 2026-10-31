@@ -1,0 +1,55 @@
+# ANPR Testing Webapp (Django)
+
+Aplikasi web lokal untuk menguji model ANPR (detektor YOLOv8n + EasyOCR) terhadap
+foto dunia nyata per batch, dengan penilaian manual, laporan metrik, dan uji
+konsistensi 100×.
+
+## Menjalankan
+
+Menggunakan environment riset (bukan folder `venv/` — venv tidak berisi torch):
+
+```bat
+C:\Users\lufias\miniforge3\envs\mace_md\python.exe webapp\manage.py migrate
+C:\Users\lufias\miniforge3\envs\mace_md\python.exe webapp\manage.py runserver 127.0.0.1:8000
+```
+
+Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
+
+## Alur pemakaian
+
+1. Buat batch → unggah foto (drag & drop boleh banyak).
+2. Foto diproses otomatis (deteksi + OCR) di thread background; halaman auto-refresh.
+3. Klik "Nilai": tandai ada/tidaknya plat, keberhasilan deteksi, keberhasilan OCR
+   (bila salah, isi teks seharusnya = ground truth), catatan. Bila >1 deteksi,
+   pilih box target lebih dulu.
+4. "Laporan batch": accuracy/precision/recall/F1, confusion matrix, AUC-ROC,
+   exact match, char accuracy, CER, latensi; export CSV/Excel.
+5. "Uji konsistensi…" (hanya untuk foto yang sudah dinilai): N inferensi (default
+   100) dengan augmentasi acak ringan per run; hasilnya: "terdeteksi X dari N run",
+   "teks sama dengan baseline Y dari N", "teks sama dengan GT Z dari N" + sebaran.
+
+## Konfigurasi (`webapp/anpr_web/settings.py`, dict `ANPR`)
+
+- `WEIGHTS`: path .pt (default hasil training riset).
+- `CONF_OPERATIONAL` (0.25): threshold yang menentukan "sistem mendeteksi" & display.
+- `CONF_STORED` (0.01): deteksi disimpan pada ambang ini supaya kurva ROC dapat direproduksi.
+- `OCR_ENGINE`/`OCR_GPU`/`OCR_PREPROCESS`: identik dengan script riset
+  (EasyOCR CPU, CLAHE + upscale).
+
+## Definisi metrik
+
+- Satuan analisis = foto (1 foto diasumsikan 1 motor).
+- TP = GT "ADA" & terdeteksi & dinilai BENAR; FN = GT "ADA" & (tak terdeteksi atau dinilai GAGAL);
+  FP = GT "TANPA" & terdeteksi; TN = GT "TANPA" & tidak terdeteksi.
+- AUC-ROC: sweep threshold confidence atas box target (positif=TP; negatif=FP/TN/FN(score 0)).
+- OCR (subset foto TP yang dinilai OCR): exact match; CER = Levenshtein/len(GT)
+  (fungsi `cer()` dari `scripts/evaluate_ocr.py`); char accuracy = 1 − distance/len(GT).
+- Teks GT dan keluaran OCR dinormalisasi dengan `anpr.postprocessing.normalize_plate_text`.
+- Foto belum dinilai / penilaian STALE tidak masuk perhitungan; jumlahnya selalu tampil.
+
+## Batasan
+
+- Ground truth = penilaian tunggal Anda; akurasi OCR end-to-end adalah batas bawah
+  selama GT belum diverifikasi saksama.
+- Tanpa autentikasi — jalankan hanya di mesin lokal, jangan expose ke jaringan publik.
+- AUC-ROC butuh foto ber-GT ADA **dan** TANPA plat; bila salah satu absen → N/A.

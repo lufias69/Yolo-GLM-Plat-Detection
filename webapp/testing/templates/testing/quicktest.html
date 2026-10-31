@@ -123,6 +123,7 @@
               / {{ result.detections|length }} disimpan</span>
             <span class="qt-chip">deteksi <b>{{ result.latency.detection_ms }} ms</b> ·
               ocr <b>{{ result.latency.ocr_ms }} ms</b></span>
+            {% if result.rotation %}<span class="qt-chip warn">plat terbaca setelah rotasi <b>{{ result.rotation }}°</b></span>{% endif %}
           </div>
 
           {% if result.annotated_b64 %}

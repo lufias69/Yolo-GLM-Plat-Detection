@@ -69,25 +69,30 @@ def execute(run):
                 return
             rng = np.random.default_rng(run.seed + i)
             variant = perturb(image, rng)
-            dets = service.detect(variant, model=yolo)
+            frame, dets, rotation = service.detect_oriented(variant, model=yolo)
+            from anpr.postprocessing import normalize_plate_text  # noqa: F401
             from django.conf import settings
-            dets = [d for d in dets
-                    if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
+            from .inference import ROTATE_FLAGS, map_box_to_original
+            orig_w, orig_h = image.shape[1], image.shape[0]
+            # simpan box frame (untuk OCR) sekaligus box koordinat asli (untuk IoU)
+            pairs = [(d, map_box_to_original(d['box'], rotation, orig_w, orig_h)) for d in dets]
+            pairs = [(d, ob) for d, ob in pairs
+                     if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]
             item = {'i': i, 'detected': False, 'confidence': None, 'iou': 0.0,
-                    'ocr_text': '', 'same_as_baseline': False, 'same_as_gt': False}
-            if dets:
+                    'ocr_text': '', 'same_as_baseline': False, 'same_as_gt': False,
+                    'rotation': rotation}
+            if pairs:
                 if baseline['box'] is not None:
-                    best = max(dets, key=lambda d: iou(d['box'], baseline['box']))
-                    best_iou = iou(best['box'], baseline['box'])
+                    frame_d, ob = max(pairs, key=lambda t: iou(t[1], baseline['box']))
+                    best_iou = iou(ob, baseline['box'])
                 else:
-                    best = dets[0]
+                    frame_d, ob = pairs[0]
                     best_iou = 1.0
                 if best_iou >= IOU_MATCH_THRESHOLD:
-                    from anpr.postprocessing import normalize_plate_text
-                    text, _ = service.recognize_crop(variant, best['box'])
+                    text, _ = service.recognize_crop(frame, frame_d['box'])
                     item.update({
                         'detected': True,
-                        'confidence': best['confidence'],
+                        'confidence': frame_d['confidence'],
                         'iou': round(best_iou, 4),
                         'ocr_text': text,
                         'same_as_baseline': text == baseline['text'],

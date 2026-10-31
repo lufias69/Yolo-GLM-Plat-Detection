@@ -38,7 +38,8 @@
     </div>
 
     <div class="card mt-3">
-      <div class="card-header">Deteksi sistem</div>
+      <div class="card-header">Deteksi sistem{% if photo.system_result.rotation %}
+        <span class="badge bg-warning text-dark">terbaca setelah rotasi {{ photo.system_result.rotation }}&deg;</span>{% endif %}</div>
       <table class="table table-sm mb-0">
         <thead><tr><th>#</th><th>Confidence</th><th>Teks OCR</th><th>OCR conf</th><th>Status</th></tr></thead>
         <tbody>

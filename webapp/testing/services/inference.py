@@ -19,6 +19,26 @@ class InferenceError(Exception):
     """Raised when an image cannot be read or processed."""
 
 
+ROTATE_FLAGS = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180,
+                270: cv2.ROTATE_90_COUNTERCLOCKWISE}
+
+
+def map_box_to_original(box, rotation_deg, orig_w, orig_h):
+    """Map a detection box made on the rotated frame back to original coords.
+
+    rotation_deg is the clockwise rotation applied to the ORIGINAL to obtain
+    the frame the box lives in (0/90/180/270)."""
+    x1, y1, x2, y2 = box
+    if rotation_deg == 0:
+        return [x1, y1, x2, y2]
+    if rotation_deg == 90:      # frame W'=H, H'=W
+        return [y1, orig_h - x2, y2, orig_h - x1]
+    if rotation_deg == 180:
+        return [orig_w - x2, orig_h - y2, orig_w - x1, orig_h - y1]
+    # 270 cw (=90 ccw): frame W'=H, H'=W
+    return [orig_w - y2, x1, orig_w - y1, x2]
+
+
 class InferenceService:
     def __init__(self):
         self._model = None
@@ -72,6 +92,24 @@ class InferenceService:
                             'confidence': float(c)})
         return out
 
+    def detect_oriented(self, image_bgr: np.ndarray, model=None) -> tuple:
+        """Detect on all 4 cardinal orientations (0/90/180/270 cw) and keep the
+        best one. The detector also fires on upside-down plates but OCR cannot
+        read those, so we pick the orientation with the highest top confidence
+        rather than the first hit. Returns (frame, detections_in_frame, deg)."""
+        best = None
+        for deg in (0, 90, 180, 270):
+            frame = image_bgr if deg == 0 else cv2.rotate(image_bgr, ROTATE_FLAGS[deg])
+            dets = self.detect(frame, model=model)
+            top = dets[0]['confidence'] if dets else 0.0
+            operational = top >= settings.ANPR['CONF_OPERATIONAL']
+            cand = (operational, top, frame, dets, deg)
+            if best is None or cand[:2] > best[:2]:
+                best = cand
+        _, _, frame, dets, deg = best
+        return frame, dets, deg
+
+
     def recognize_crop(self, image_bgr: np.ndarray, box) -> tuple:
         x1, y1, x2, y2 = [int(v) for v in box]
         crop = image_bgr[y1:y2, x1:x2]
@@ -102,7 +140,7 @@ class InferenceService:
         h, w = image.shape[:2]
 
         t0 = time.perf_counter()
-        detections = self.detect(image, model=self.model_for(weights_path))
+        frame, detections, rotation = self.detect_oriented(image, model=self.model_for(weights_path))
         detection_ms = (time.perf_counter() - t0) * 1000.0
 
         operational = [d['index'] for d in detections
@@ -111,13 +149,18 @@ class InferenceService:
         t1 = time.perf_counter()
         for d in detections:
             if d['index'] in operational:
-                text, conf = self.recognize_crop(image, d['box'])
+                # OCR pada frame terorientasi (plat tegak), bukan frame asli
+                text, conf = self.recognize_crop(frame, d['box'])
                 d['ocr_text'] = text
                 d['ocr_confidence'] = conf
             else:
                 d['ocr_text'] = ''
                 d['ocr_confidence'] = 0.0
         ocr_ms = (time.perf_counter() - t1) * 1000.0
+
+        if rotation:
+            detections = [dict(d, box=map_box_to_original(d['box'], rotation, w, h))
+                          for d in detections]
 
         rendered = self.render_annotated(image, detections, operational)
         import hashlib
@@ -131,6 +174,7 @@ class InferenceService:
         return {
             'detections': detections,
             'operational_boxes': operational,
+            'rotation': int(rotation),
             'latency': {
                 'detection_ms': round(detection_ms, 2),
                 'ocr_ms': round(ocr_ms, 2),

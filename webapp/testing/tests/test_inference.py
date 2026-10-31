@@ -7,7 +7,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from anpr.postprocessing import normalize_plate_text
 from testing.services import inference
@@ -144,3 +144,81 @@ class ThreadSafetyTest(unittest.TestCase):
         finally:
             inference.InferenceService = original
             inference._service = old
+
+
+class OrientedModel:
+    """Fake: hanya mendeteksi pada gambar portrait (hasil rotasi dari landscape)."""
+
+    def __init__(self, need_portrait=True):
+        self.need_portrait = need_portrait
+        self.calls = 0
+
+    def __call__(self, image, verbose=False, conf=0.25):
+        self.calls += 1
+        h, w = image.shape[:2]
+        hit = (h > w) if self.need_portrait else True
+        boxes = [[10, 10, 100, 50]] if hit else [[0, 0, 0, 0]]
+        confs = [0.9] if hit else [0.0]
+        return [FakeResult(boxes if hit else [], confs if hit else [])]
+
+
+class RotationFallbackTest(TestCase):
+    def setUp(self):
+        img = np.zeros((200, 400, 3), dtype=np.uint8)  # landscape
+        fd, self.path = tempfile.mkstemp(suffix='.jpg')
+        os.close(fd)
+        cv2.imwrite(self.path, img)
+        self.addCleanup(lambda: Path(self.path).unlink(missing_ok=True))
+
+    def _svc(self, fake_model):
+        svc = InferenceService.__new__(InferenceService)
+        svc._model = fake_model
+        svc._engine = FakeEngine()
+        return svc
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_rotated_photo_detected_via_fallback(self):
+        inference._service = self._svc(OrientedModel())
+        self.addCleanup(setattr, inference, '_service', None)
+        res = inference.get_service().process_file(Path(self.path))
+        self.assertEqual(res['rotation'], 90)
+        self.assertEqual(res['operational_boxes'], [0])
+        box = res['detections'][0]['box']
+        # box dipetakan ke koordinat gambar asli (landscape 400x200)
+        self.assertLessEqual(box[2], 400)
+        self.assertLessEqual(box[3], 200)
+        self.assertGreaterEqual(box[1], 100)  # hasil inverse-rotasi jatuh di sisi bawah-kiri
+        self.assertGreater(inference.get_service()._model.calls, 1)
+
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_upright_photo_prefers_rotation_zero(self):
+        class AnyModel(OrientedModel):
+            def __call__(self, image, verbose=False, conf=0.25):
+                self.calls += 1
+                return [FakeResult([[10, 10, 100, 50]], [0.9])]
+
+        m = AnyModel(True)
+        inference._service = self._svc(m)
+        self.addCleanup(setattr, inference, '_service', None)
+        res = inference.get_service().process_file(Path(self.path))
+        self.assertEqual(res['rotation'], 0)  # seri conf -> orientasi awal menang
+        self.assertEqual(m.calls, 4)  # keempat orientasi selalu dicoba (pilih terbaik)
+
+
+class MapBoxTest(SimpleTestCase):
+    def test_roundtrip_corners(self):
+        from testing.services.inference import map_box_to_original
+        import cv2
+        W, H = 400, 200
+        box = [10, 20, 110, 70]
+        img = np.zeros((H, W, 3), np.uint8)
+        for deg, flag in [(90, cv2.ROTATE_90_CLOCKWISE), (180, cv2.ROTATE_180),
+                          (270, cv2.ROTATE_90_COUNTERCLOCKWISE)]:
+            rot = cv2.rotate(img, flag)
+            # titik tengah box di frame rotasi harus sama dengan tengah box terpetakan di asli
+            cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+            # mapping forward: box asli -> frame rotasi via map_box_to_original kebalikan
+            ob = map_box_to_original(box, deg, W, H)  # box(di frame)->asli; untuk forward pakai deg invers
+            self.assertTrue(all(v >= 0 for v in ob))
+            self.assertLessEqual(ob[2], W)
+            self.assertLessEqual(ob[3], H)

@@ -27,6 +27,9 @@ class StubService:
     def detect(self, image, model=None):
         return [{'index': 0, 'box': [10, 10, 60, 40], 'confidence': self.conf}]
 
+    def detect_oriented(self, image, model=None):
+        return image, self.detect(image, model), 0
+
     def recognize_crop(self, image, box):
         return ('DR 1282 AS' if self.i % 4 else 'DR 1282 A5'), 0.8
 
@@ -101,7 +104,7 @@ class ExecuteTest(TestCase):
         self._execute_with_counter()
         self.run.refresh_from_db()
         s = self.run.summary
-        self.assertEqual(self.run.status, 'done')
+        self.assertEqual(self.run.status, 'done', self.run.error_message)
         self.assertEqual(len(self.run.runs), 20)
         self.assertEqual(s['detected_x_of_n'], '20/20')
         self.assertEqual(s['same_as_baseline_x_of_n'], '15/20')

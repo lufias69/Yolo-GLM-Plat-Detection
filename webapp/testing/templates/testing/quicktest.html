@@ -116,25 +116,9 @@
                  alt="Gambar hasil inference dengan kotak deteksi">
           {% endif %}
 
-          <div class="qt-sub">Deteksi</div>
-          {% for d in result.detections %}
-            <div class="qt-drow {% if d.index not in result.operational_boxes %}below{% endif %}">
-              <span class="qt-badge-idx">#{{ d.index }}</span>
-              <div>
-                <div class="line1">
-                  <span class="ocr">{% if d.ocr_text %}OCR <code>{{ d.ocr_text }}</code>
-                    <span style="font-size:.78rem">(conf {{ d.ocr_confidence|floatformat:2 }})</span>
-                    {% else %}— teks kosong{% endif %}</span>
-                  <span class="conf">{{ d.confidence|floatformat:3 }}</span>
-                </div>
-                <div class="qt-bar"><i class="{% if d.index in result.operational_boxes %}op{% else %}sub{% endif %}"
-                  style="width:{% widthratio d.confidence 1 100 %}%"></i></div>
-              </div>
-            </div>
-          {% empty %}
-            <div class="qt-drow"><span class="qt-badge-idx">—</span>
-              <div class="line1"><span class="ocr">Tidak ada deteksi pada ambang simpan (conf ≥ 0,01).</span></div></div>
-          {% endfor %}
+          {% if not result.detections %}
+            <p class="small text-muted mb-0">Tidak ada deteksi pada ambang simpan (conf ≥ 0,01).</p>
+          {% endif %}
         </div>
 
         {% if result.ocr_all %}

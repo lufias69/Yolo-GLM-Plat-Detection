@@ -39,8 +39,8 @@ class QuickTestViewTest(TestCase):
         svc.process_file.return_value = dict(RESULT)
         resp = self.client.post('/uji-cepat/', {'image': jpg()}, follow=True)
         body = resp.content.decode()
-        self.assertIn('DR 1282 AS', body)
-        self.assertIn('0,87', body)
+        self.assertIn('Plat terdeteksi', body)
+        self.assertIn('box operasional', body)
         svc.process_file.assert_called_once()
 
     @patch('testing.views.get_service')

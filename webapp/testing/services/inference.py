@@ -24,6 +24,7 @@ class InferenceService:
         self._model = None
         self._engine = None
         self._load_lock = threading.Lock()
+        self._models = {}
 
     @property
     def model(self):
@@ -34,6 +35,20 @@ class InferenceService:
                     self._model = YOLO(settings.ANPR['WEIGHTS'])
         return self._model
 
+    def model_for(self, path=None):
+        """Cached YOLO handle per weights path (thread-safe). None/default = active settings model."""
+        if not path or path == settings.ANPR['WEIGHTS']:
+            return self.model
+        cached = self._models.get(path)
+        if cached is None:
+            with self._load_lock:
+                cached = self._models.get(path)
+                if cached is None:
+                    from ultralytics import YOLO
+                    cached = YOLO(path)
+                    self._models[path] = cached
+        return cached
+
     @property
     def engine(self):
         if self._engine is None:
@@ -43,9 +58,9 @@ class InferenceService:
                     self._engine = get_engine(settings.ANPR['OCR_ENGINE'], gpu=settings.ANPR['OCR_GPU'])
         return self._engine
 
-    def detect(self, image_bgr: np.ndarray) -> list:
+    def detect(self, image_bgr: np.ndarray, model=None) -> list:
         """Run YOLO at CONF_STORED; list of {'index','box','confidence'} desc by confidence."""
-        results = self.model(image_bgr, verbose=False, conf=settings.ANPR['CONF_STORED'])
+        results = (model or self.model)(image_bgr, verbose=False, conf=settings.ANPR['CONF_STORED'])
         boxes = results[0].boxes
         out = []
         if boxes is not None and len(boxes) > 0:
@@ -80,14 +95,14 @@ class InferenceService:
                         0.5, color, 2)
         return out
 
-    def process_file(self, path: Path) -> dict:
+    def process_file(self, path: Path, weights_path: str = None) -> dict:
         image = cv2.imread(str(path))
         if image is None:
             raise InferenceError(f'Gambar tidak dapat dibaca: {path.name}')
         h, w = image.shape[:2]
 
         t0 = time.perf_counter()
-        detections = self.detect(image)
+        detections = self.detect(image, model=self.model_for(weights_path))
         detection_ms = (time.perf_counter() - t0) * 1000.0
 
         operational = [d['index'] for d in detections

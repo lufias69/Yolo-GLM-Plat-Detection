@@ -55,6 +55,8 @@ def execute(run):
     baseline = baseline_of(photo)
     gt_text = getattr(photo.annotation, 'gt_text', '') or baseline['text']
     service = get_service()
+    weights = photo.model.effective_path() if photo.model_id else None
+    yolo = service.model_for(weights)
     results = []
     try:
         for i in range(run.n):
@@ -67,7 +69,7 @@ def execute(run):
                 return
             rng = np.random.default_rng(run.seed + i)
             variant = perturb(image, rng)
-            dets = service.detect(variant)
+            dets = service.detect(variant, model=yolo)
             from django.conf import settings
             dets = [d for d in dets
                     if d['confidence'] >= settings.ANPR['CONF_OPERATIONAL']]

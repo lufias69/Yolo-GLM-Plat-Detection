@@ -77,11 +77,12 @@
   <div class="card-header">Rekap per foto</div>
   <div class="table-responsive">
     <table class="table table-sm table-striped mb-0">
-      <thead><tr><th>Foto</th><th>GT ada plat</th><th>Outcome</th><th>Conf target</th><th>OCR sistem</th><th>GT teks</th><th>Latensi ms</th><th>Catatan</th></tr></thead>
+      <thead><tr><th>Foto</th><th>Model</th><th>GT ada plat</th><th>Outcome</th><th>Conf target</th><th>OCR sistem</th><th>GT teks</th><th>Latensi ms</th><th>Catatan</th></tr></thead>
       <tbody>
       {% for r in rows %}
         <tr>
           <td><a href="{% url 'testing:photo_detail' r.photo.id %}">{{ r.photo.original_name|truncatechars:32 }}</a></td>
+          <td class="small">{{ r.photo.model.name|default:'—' }}</td>
           <td>{{ r.ann.gt_presence|default:'—' }}{% if r.ann.stale %} <span class="badge bg-info text-dark">STALE</span>{% endif %}</td>
           <td>{{ r.outcome|default:'belum dinilai' }}</td>
           <td>{{ r.conf|num }}</td>

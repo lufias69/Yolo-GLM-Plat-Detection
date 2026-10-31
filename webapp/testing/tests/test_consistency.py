@@ -24,13 +24,16 @@ class StubService:
 
     conf = 0.9
 
-    def detect(self, image):
+    def detect(self, image, model=None):
         return [{'index': 0, 'box': [10, 10, 60, 40], 'confidence': self.conf}]
 
     def recognize_crop(self, image, box):
         return ('DR 1282 AS' if self.i % 4 else 'DR 1282 A5'), 0.8
 
     i = 0
+
+    def model_for(self, path=None):
+        return self
 
 
 class ThresholdTest(TestCase):

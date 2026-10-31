@@ -1,0 +1,68 @@
+{% extends 'testing/base.html' %}
+
+{% block title %}Model YOLO{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<h1 class="h4 mb-3">Model YOLO</h1>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-header">Upload model baru (.pt)</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'testing:model_upload' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">Nama model</label>
+            <input name="name" class="form-control" required placeholder="mis. yolov8s retrain-2">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">File bobot</label>
+            <input type="file" name="weights" class="form-control" accept=".pt" required>
+          </div>
+          <button class="btn btn-primary w-100">Upload &amp; daftarkan</button>
+        </form>
+        <p class="small text-muted mt-2 mb-0">Format: bobot Ultralytics YOLO (hasil `train`, mis. best.pt). Model baru belum aktif — klik "Jadikan aktif".</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header">Daftar model</div>
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Nama</th><th>Status</th><th>Foto diproses</th><th>Sumber</th><th></th></tr></thead>
+        <tbody>
+        {% for m in models %}
+          <tr>
+            <td><strong>{{ m.name }}</strong><div class="small text-muted">{{ m.notes }}</div></td>
+            <td>{% if m.is_active %}<span class="badge bg-success">AKTIF</span>{% else %}<span class="text-muted small">siaga</span>{% endif %}</td>
+            <td>{{ m.photos.count }}</td>
+            <td class="small text-muted text-truncate" style="max-width:180px">{{ m.effective_path|default:'—' }}</td>
+            <td class="text-end">
+              {% if not m.is_active %}
+                <form method="post" action="{% url 'testing:model_activate' m.id %}" class="d-inline">
+                  {% csrf_token %}<button class="btn btn-sm btn-outline-primary">Jadikan aktif</button>
+                </form>
+                {% if not m.photos.count %}
+                <form method="post" action="{% url 'testing:model_delete' m.id %}" class="d-inline"
+                      onsubmit="return confirm('Hapus model {{ m.name }}?')">
+                  {% csrf_token %}<button class="btn btn-sm btn-outline-danger">Hapus</button>
+                </form>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted mt-2">Semua foto baru memakai model aktif saat diproses; foto lama tetap tercatat dengan model aslinya. Uji konsistensi juga memakai model yang sama dengan saat foto diproses.</p>
+  </div>
+</div>
+{% endblock %}

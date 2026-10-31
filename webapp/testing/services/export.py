@@ -7,7 +7,7 @@ import io
 
 from . import metrics
 
-HEADERS = ['file', 'gt_presence', 'detected_ok', 'target_index', 'ocr_ok', 'gt_text',
+HEADERS = ['file', 'model', 'gt_presence', 'detected_ok', 'target_index', 'ocr_ok', 'gt_text',
            'catatan', 'sistem:deteksi_ada', 'sistem:conf_target', 'sistem:ocr_text',
            'outcome', 'status_penilaian', 'latensi_ms']
 
@@ -30,6 +30,7 @@ def rows(batch) -> list:
         det = metrics.target_detection(p) if p.status == 'done' else None
         out.append([
             p.original_name,
+            p.model.name if p.model_id else '',
             ann.gt_presence if ann else '',
             ann.detected_ok if ann else '',
             ann.target_detection_index if ann else '',

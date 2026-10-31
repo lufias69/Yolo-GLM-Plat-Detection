@@ -37,9 +37,12 @@ def _process_photo(photo_id):
     photo.save(update_fields=['status', 'error_message'])
 
     path = photo.image.path
+    weights = photo.model.effective_path() if photo.model_id else None
     try:
-        fn = _process_fn if _process_fn is not None else get_service().process_file
-        result = fn(path)
+        if _process_fn is not None:
+            result = _process_fn(path)
+        else:
+            result = get_service().process_file(path, weights_path=weights)
     except InferenceError as exc:
         photo.status = 'error'
         photo.error_message = str(exc)

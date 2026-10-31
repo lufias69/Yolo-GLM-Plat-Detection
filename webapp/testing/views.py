@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Annotation, ConsistencyRun, Photo, TestBatch
+from .models import Annotation, ConsistencyRun, Photo, TestBatch, YoloModel
 from .forms import AnnotationForm
 from .services import consistency, export, metrics, workers
 
@@ -100,7 +100,8 @@ def upload_photos(request, batch_id):
             messages.error(request, f'File {f.name} bukan gambar yang didukung '
                                     f'(jpg/jpeg/png/webp/bmp).')
             continue
-        photo = Photo.objects.create(batch=batch, image=f, original_name=f.name)
+        photo = Photo.objects.create(batch=batch, image=f, original_name=f.name,
+                                     model=YoloModel.ensure_default())
         workers.enqueue_photo(photo.id)
         accepted += 1
     if accepted:
@@ -214,3 +215,48 @@ def consistency_status(request, photo_id, run_id):
         'of': run.n,
         'summary': run.summary if run.status == 'done' else None,
     })
+
+
+def models_page(request):
+    models = YoloModel.objects.all()
+    YoloModel.ensure_default()
+    return render(request, 'testing/models.html', {'models': YoloModel.objects.all()})
+
+
+@require_POST
+def model_upload(request):
+    name = request.POST.get('name', '').strip()
+    f = request.FILES.get('weights')
+    if not name:
+        messages.error(request, 'Nama model wajib diisi.')
+    elif not f or not f.name.lower().endswith('.pt'):
+        messages.error(request, 'File harus berformat .pt (bobot Ultralytics YOLO).')
+    elif YoloModel.objects.filter(name=name).exists():
+        messages.error(request, f'Nama "{name}" sudah dipakai.')
+    else:
+        YoloModel.objects.create(name=name, weights=f)
+        messages.success(request, f'Model "{name}" terdaftar. Klik "Jadikan aktif" untuk memakainya.')
+    return redirect('testing:models')
+
+
+@require_POST
+def model_activate(request, model_id):
+    m = get_object_or_404(YoloModel, pk=model_id)
+    YoloModel.objects.filter(is_active=True).exclude(pk=m.pk).update(is_active=False)
+    m.is_active = True
+    m.save(update_fields=['is_active'])
+    messages.success(request, f'Model aktif: {m.name}. Foto baru akan diproses dengan model ini.')
+    return redirect('testing:models')
+
+
+@require_POST
+def model_delete(request, model_id):
+    m = get_object_or_404(YoloModel, pk=model_id)
+    if m.is_active:
+        messages.error(request, 'Model aktif tidak bisa dihapus — aktifkan model lain dulu.')
+    elif m.photos.exists():
+        messages.error(request, f'Model "{m.name}" sudah dipakai {m.photos.count()} foto — tidak bisa dihapus (riwayat harus tertelusuri).')
+    else:
+        m.delete()
+        messages.success(request, f'Model "{m.name}" dihapus.')
+    return redirect('testing:models')

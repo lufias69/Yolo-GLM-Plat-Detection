@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -31,6 +33,8 @@ class Photo(models.Model):
         ('error', 'Gagal'),
     ]
     batch = models.ForeignKey(TestBatch, related_name='photos', on_delete=models.CASCADE)
+    model = models.ForeignKey('YoloModel', related_name='photos', null=True, blank=True,
+                              on_delete=models.SET_NULL)
     image = models.FileField(upload_to='photos/%Y%m/')
     annotated_image = models.FileField(upload_to='annotated/%Y%m/', null=True, blank=True)
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='queued')
@@ -132,3 +136,38 @@ class ConsistencyRun(models.Model):
 
     def __str__(self):
         return f'Konsistensi {self.photo} (n={self.n}, {self.status})'
+
+
+class YoloModel(models.Model):
+    """Registered YOLO weight file (.pt). Exactly one is_active at a time; used
+    for all NEW processed photos. Photo.model records which one produced each result."""
+    name = models.CharField('Nama model', max_length=120, unique=True)
+    weights = models.FileField(upload_to='models/', null=True, blank=True)
+    external_path = models.CharField(max_length=500, blank=True, default='',
+                                     help_text='Path .pt di disk (untuk model bawaan riset)')
+    is_active = models.BooleanField(default=False)
+    notes = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-is_active', 'name']
+
+    def __str__(self):
+        return self.name
+
+    def effective_path(self):
+        if self.weights:
+            return self.weights.path
+        return self.external_path
+
+    @classmethod
+    def ensure_default(cls):
+        if cls.objects.exists():
+            return cls.objects.filter(is_active=True).first() or cls.objects.first()
+        from django.conf import settings
+        defaults = {'is_active': True,
+                    'external_path': settings.ANPR['WEIGHTS'],
+                    'notes': 'Model bawaan hasil training riset (dari settings ANPR.WEIGHTS)'}
+        name = Path(settings.ANPR['WEIGHTS']).stem if settings.ANPR['WEIGHTS'] else 'best'
+        m, _ = cls.objects.get_or_create(name=f'bawaan ({name})', defaults=defaults)
+        return m

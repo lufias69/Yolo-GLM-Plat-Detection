@@ -108,6 +108,7 @@ Seluruh suite (111 test) harus hijau. Cek manual:
 | Tesseract hasil kosong | binary belum di PATH — install Tesseract 5 + language pack `eng` |
 | Inference pertama sangat lambat | EasyOCR/PaddleOCR mengunduh bobot model sekali di awal |
 | Foto status `Gagal` permanen | buka detail foto, lihat `error_message`; klik *Proses ulang* setelah perbaikan |
+| Kolom `ratio_*` kosong di export CSV/OCR | penilaian dibuat sebelum migrasi 0005 — jalankan `python manage.py backfill_ocr_ratios` (sekali) |
 | Port 8000 bentrok | `python manage.py runserver 127.0.0.1:8001` |
 
 ## 9. Keamanan (penting)

@@ -109,7 +109,15 @@
       <tbody>
       {% for r in rows %}
         <tr>
-          <td><a href="{% url 'testing:photo_detail' r.photo.id %}">{{ r.photo.original_name|truncatechars:32 }}</a></td>
+          <td class="p-1">
+            <a href="{% url 'testing:photo_detail' r.photo.id %}" title="{{ r.photo.original_name }}">
+              {% if r.photo.annotated_image %}
+                <img class="rekap-thumb" src="{{ r.photo.annotated_image.url }}" alt="{{ r.photo.original_name }}" style="height:48px;width:72px;object-fit:cover;border-radius:4px;display:block;">
+              {% elif r.photo.image %}
+                <img class="rekap-thumb" src="{{ r.photo.image.url }}" alt="{{ r.photo.original_name }}" style="height:48px;width:72px;object-fit:cover;border-radius:4px;display:block;">
+              {% else %}{{ r.photo.original_name|truncatechars:24 }}{% endif %}
+            </a>
+          </td>
           <td class="small">{{ r.photo.model.name|default:'—' }}</td>
           <td>
             {% if r.ann.gt_presence == 'ADA' %}<span class="text-success fw-bold">&#10003; Ada</span>

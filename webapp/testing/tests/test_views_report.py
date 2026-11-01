@@ -64,3 +64,11 @@ class ReportViewTest(TestCase):
         body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
         self.assertIn('End-to-end', body)
         self.assertIn('100,00', body)
+
+    def test_photo_column_shows_thumbnail_preview(self):
+        p = Photo.objects.get(original_name='tp.jpg')
+        p.annotated_image = 'annotated/tp.jpg'
+        p.save(update_fields=['annotated_image'])
+        body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
+        self.assertIn('/media/annotated/tp.jpg', body)
+        self.assertIn('rekap-thumb', body)

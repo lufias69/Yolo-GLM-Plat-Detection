@@ -37,30 +37,10 @@
       </div>
     </div>
 
-    <div class="card mt-3">
-      <div class="card-header">Deteksi sistem{% if photo.system_result.rotation %}
-        <span class="badge bg-warning text-dark">terbaca setelah rotasi {{ photo.system_result.rotation }}&deg;</span>{% endif %}</div>
-      <table class="table table-sm mb-0">
-        <thead><tr><th>#</th><th>Confidence</th><th>Teks OCR</th><th>OCR conf</th><th>Status</th></tr></thead>
-        <tbody>
-        {% for d in detections %}
-          <tr class="{% if d.index in operational %}table-success{% else %}table-light text-muted{% endif %}">
-            <td>{{ d.index }}</td>
-            <td>{{ d.confidence|floatformat:3 }}</td>
-            <td><code>{{ d.ocr_text|default:'—' }}</code></td>
-            <td>{{ d.ocr_confidence|floatformat:2 }}</td>
-            <td>{% if d.index in operational %}operasional{% else %}di bawah threshold{% endif %}</td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="5" class="text-muted">Tidak ada deteksi sama sekali (conf ≥ 0,01).</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
 
     {% if photo.system_result.ocr_all %}
     <div class="card mt-3">
-      <div class="card-header">Semua engine OCR pada crop target <span class="badge bg-secondary">tersimpan di database</span></div>
+      <div class="card-header">Semua engine OCR pada crop target <span class="badge bg-secondary">tersimpan di database</span>{% if photo.system_result.rotation %} <span class="badge bg-warning text-dark">terbaca setelah rotasi {{ photo.system_result.rotation }}&deg;</span>{% endif %}</div>
       <table class="table table-sm mb-0">
         <thead><tr><th>Engine</th><th>Teks terpilih</th><th>Skor</th><th>Fragmen mentah</th></tr></thead>
         <tbody>

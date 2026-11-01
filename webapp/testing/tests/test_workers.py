@@ -119,3 +119,16 @@ class WorkerSaveRobustnessTest(TestCase):
         fresh = Photo.objects.get(pk=photo.id)
         self.assertEqual(fresh.status, 'error')
         self.assertIn('database is locked', fresh.error_message)
+
+
+class WorkerMissingFileTest(TestCase):
+    @override_settings(MEDIA_ROOT=TMP_MEDIA)
+    def test_missing_file_gives_real_error_not_attribute_error(self):
+        batch = TestBatch.objects.create(name='B')
+        photo = Photo.objects.create(batch=batch, image='photos/tiada.jpg',
+                                     original_name='tiada.jpg')
+        workers._process_photo(photo.id)
+        photo.refresh_from_db()
+        self.assertEqual(photo.status, 'error')
+        self.assertIn('tidak dapat dibaca', photo.error_message)
+        self.assertNotIn("has no attribute 'name'", photo.error_message)

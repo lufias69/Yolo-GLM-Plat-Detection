@@ -36,7 +36,8 @@ def _process_photo(photo_id):
     photo.error_message = ''
     photo.save(update_fields=['status', 'error_message'])
 
-    path = photo.image.path
+    from pathlib import Path
+    path = Path(photo.image.path)
     weights = photo.model.effective_path() if photo.model_id else None
     try:
         if _process_fn is not None:

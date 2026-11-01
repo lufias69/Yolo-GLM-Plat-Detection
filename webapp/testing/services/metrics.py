@@ -237,23 +237,37 @@ def end_to_end_metrics(photos) -> dict:
 
 
 def engine_metrics(photos) -> dict:
-    """Exact match & char accuracy per engine OCR, atas foto yang engine-nya
-    dinilai lengkap dan tidak stale."""
+    """Ringkasan penuh per engine OCR (exact, char accuracy, mean sim, CER,
+    end-to-end), atas foto yang engine-nya dinilai dan tidak stale."""
     per = {}
     for p in photos:
         ann = _ann(p)
-        if ann is None or photo_outcome(p) != 'TP':
+        if ann is None:
             continue
+        tp = photo_outcome(p) == 'TP'
+        det_rated = ann.gt_presence == 'ADA' and ann.detected_ok in ('BENAR', 'GAGAL')
         gt = ann.gt_text
         for j in ann.engine_judgments.all():
-            d = per.setdefault(j.engine, {'n': 0, 'exact': 0, 'wrong_sum': 0, 'gt_len_sum': 0})
+            d = per.setdefault(j.engine, {'n': 0, 'exact': 0, 'wrong_sum': 0,
+                                          'gt_len_sum': 0, 'sims': [], 'cers': [],
+                                          'e2e_n': 0, 'e2e_ok': 0})
             d['n'] += 1
-            if j.ok == 'BENAR':
+            ok = j.ok == 'BENAR'
+            if ok:
                 d['exact'] += 1
+                d['cers'].append(0.0)
             else:
                 wrong = j.wrong_chars if j.wrong_chars is not None else 0
                 d['wrong_sum'] += wrong
                 d['gt_len_sum'] += max(len(gt), 1)
+                if gt:
+                    d['cers'].append(wrong / max(len(gt), 1))
+            if j.sim_nospasi is not None:
+                d['sims'].append(j.sim_nospasi)
+            if det_rated:
+                d['e2e_n'] += 1
+                if tp and ok:
+                    d['e2e_ok'] += 1
     out = {}
     for eng, d in per.items():
         exact = d['exact'] / d['n'] if d['n'] else None
@@ -263,5 +277,8 @@ def engine_metrics(photos) -> dict:
             char_acc = max(0.0, 1 - d['wrong_sum'] / d['gt_len_sum'])
         if judged_salah == 0:
             char_acc = 1.0 if d['n'] else None
-        out[eng] = {'n': d['n'], 'exact': exact, 'char_accuracy': char_acc}
+        out[eng] = {'n': d['n'], 'exact': exact, 'char_accuracy': char_acc,
+                    'mean_sim': statistics.fmean(d['sims']) if d['sims'] else None,
+                    'cer_mean': statistics.fmean(d['cers']) if d['cers'] else None,
+                    'e2e': {'n': d['e2e_n'], 'success': d['e2e_ok']}}
     return out

@@ -10,6 +10,7 @@ urlpatterns = [
     path('models/', views.models_page, name='models'),
     path('models/upload/', views.model_upload, name='model_upload'),
     path('models/<int:model_id>/activate/', views.model_activate, name='model_activate'),
+    path('models/<int:model_id>/rename/', views.model_rename, name='model_rename'),
     path('models/<int:model_id>/delete/', views.model_delete, name='model_delete'),
     path('batch/<int:batch_id>/', views.batch_detail, name='batch_detail'),
     path('batch/<int:batch_id>/upload/', views.upload_photos, name='upload_photos'),

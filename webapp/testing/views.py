@@ -379,6 +379,22 @@ def model_activate(request, model_id):
 
 
 @require_POST
+def model_rename(request, model_id):
+    m = get_object_or_404(YoloModel, pk=model_id)
+    name = request.POST.get('name', '').strip()
+    if not name:
+        messages.error(request, 'Nama model tidak boleh kosong.')
+    elif YoloModel.objects.filter(name=name).exclude(pk=m.pk).exists():
+        messages.error(request, f'Nama "{name}" sudah dipakai model lain.')
+    else:
+        lama = m.name
+        m.name = name
+        m.save(update_fields=['name'])
+        messages.success(request, f'Nama model diubah: "{lama}" → "{name}".')
+    return redirect('testing:models')
+
+
+@require_POST
 def model_delete(request, model_id):
     m = get_object_or_404(YoloModel, pk=model_id)
     if m.is_active:

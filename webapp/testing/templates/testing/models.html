@@ -40,7 +40,14 @@
         <tbody>
         {% for m in models %}
           <tr>
-            <td><strong>{{ m.name }}</strong><div class="small text-muted">{{ m.notes }}</div></td>
+            <td>
+              <form method="post" action="{% url 'testing:model_rename' m.id %}" class="d-flex gap-1">
+                {% csrf_token %}
+                <input name="name" class="form-control form-control-sm" value="{{ m.name }}" required style="max-width:220px">
+                <button class="btn btn-sm btn-outline-secondary text-nowrap" title="Simpan nama baru">Ganti</button>
+              </form>
+              <div class="small text-muted">{{ m.notes }}</div>
+            </td>
             <td>{% if m.is_active %}<span class="badge bg-success">AKTIF</span>{% else %}<span class="text-muted small">siaga</span>{% endif %}</td>
             <td>{{ m.photos.count }}</td>
             <td class="small text-muted text-truncate" style="max-width:180px">{{ m.effective_path|default:'—' }}</td>

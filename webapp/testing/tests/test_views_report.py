@@ -72,3 +72,19 @@ class ReportViewTest(TestCase):
         body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
         self.assertIn('/media/annotated/tp.jpg', body)
         self.assertIn('rekap-thumb', body)
+
+    def test_engine_table_reports_all_engines_fully(self):
+        # tp.jpg dinilai per engine: easyocr BENAR, paddleocr SALAH.
+        from testing.models import EngineJudgment
+        p = Photo.objects.get(original_name='tp.jpg')
+        ann = p.annotation
+        EngineJudgment.objects.create(annotation=ann, engine='easyocr', ok='BENAR',
+                                      sim_nospasi=100, sim_spasi=100,
+                                      ratio_nospasi=1.0, ratio_spasi=1.0)
+        EngineJudgment.objects.create(annotation=ann, engine='paddleocr', ok='SALAH',
+                                      sim_nospasi=80, sim_spasi=80,
+                                      ratio_nospasi=0.8, ratio_spasi=0.8)
+        body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
+        # kolom lengkap per engine: sim, CER, E2E
+        for header in ['Mean sim', 'CER', 'E2E']:
+            self.assertIn(header, body)

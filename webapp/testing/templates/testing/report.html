@@ -78,11 +78,13 @@
         <span class="small text-muted">(penilaian manual per engine)</span>
         <a class="small" href="{% url 'testing:batch_ocr_analysis' batch.id %}">detail &amp; grafik &rarr;</a></h6>
       <table class="table table-sm mb-0">
-        <thead><tr><th>Engine</th><th>Foto dinilai</th><th>Exact match</th><th>Char accuracy</th></tr></thead>
+        <thead><tr><th>Engine</th><th>Foto dinilai</th><th>Exact match</th><th>Char accuracy</th><th>Mean sim −spasi</th><th>CER mean</th><th>E2E (deteksi+OCR)</th></tr></thead>
         <tbody>
         {% for eng, m in rep.engines.items %}
           <tr><td><strong>{{ eng }}</strong></td><td>{{ m.n }}</td>
-              <td>{{ m.exact|pct }}</td><td>{{ m.char_accuracy|pct }}</td></tr>
+              <td>{{ m.exact|pct }}</td><td>{{ m.char_accuracy|pct }}</td>
+              <td>{{ m.mean_sim|num:'1' }}%</td><td>{{ m.cer_mean|pct }}</td>
+              <td>{{ m.e2e.success|pct_of:m.e2e.n }} <span class="text-muted small">({{ m.e2e.success }}/{{ m.e2e.n }})</span></td></tr>
         {% endfor %}
         </tbody>
       </table>

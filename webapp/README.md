@@ -6,6 +6,9 @@ konsistensi 100×.
 
 ## Menjalankan
 
+Instalasi dari nol (environment, dependensi, bobot model): lihat [`INSTALL.md`](INSTALL.md).
+Daftar kebutuhan perangkat lunak: [`docs/requirements-webapp.md`](../docs/requirements-webapp.md).
+
 Menggunakan environment riset (bukan folder `venv/` — venv tidak berisi torch):
 
 ```bat

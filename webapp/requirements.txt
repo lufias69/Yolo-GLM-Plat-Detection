@@ -1,0 +1,26 @@
+# Dependensi webapp ANPR Testing (Django).
+# Diuji pada Python 3.11 (env mace_md) dan 3.12 (venv lokal tanpa torch).
+#
+# Install:  pip install -r requirements.txt
+# Catatan:  torch untuk GPU tidak di-pin di sini — lihat INSTALL.md
+#           (install torch sesuai CUDA Anda sebelum ultralytics).
+
+# --- Web framework ---
+Django>=5.2
+openpyxl>=3.1
+
+# --- Deteksi (YOLO) ---
+ultralytics>=8.3.0
+opencv-python>=4.10.0
+numpy>=1.26.0
+pillow>=10.0.0
+
+# --- OCR engine ---
+easyocr>=1.7.0
+paddleocr>=2.9.0
+paddlepaddle>=2.6.0
+pytesseract>=0.3.10        # butuh binary Tesseract terpasang di sistem
+requests>=2.31.0           # untuk glm-ocr via Ollama lokal
+
+# --- Utilitas riset yang diimpor ulang (scripts/evaluate_ocr.py: cer) ---
+pandas>=2.1.0

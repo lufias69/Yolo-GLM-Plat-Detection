@@ -27,7 +27,7 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
    dihitung otomatis dari "teks plat seharusnya" dan bisa dioverride, plus catatan per engine).
    Bila >1 deteksi, pilih box target lebih dulu.
 4. "Laporan batch": accuracy/precision/recall/F1, confusion matrix, AUC-ROC,
-   exact match, char accuracy, CER, latensi; export CSV/Excel.
+   exact match, char accuracy, CER, end-to-end (deteksi+OCR benar), latensi; export CSV/Excel.
    Laporan juga memuat **tabel perbandingan engine OCR** (exact match & char accuracy per
    engine dari penilaian manual); export menambah kolom nilai_/slh_karakter_/catatan_<engine>.
 5. "Laporan OCR" (`/batch/<id>/report/ocr/`) menampilkan GT vs bacaan semua engine per foto,

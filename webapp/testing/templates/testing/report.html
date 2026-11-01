@@ -93,13 +93,24 @@
   <div class="card-header">Rekap per foto</div>
   <div class="table-responsive">
     <table class="table table-sm table-striped mb-0">
-      <thead><tr><th>Foto</th><th>Model</th><th>GT ada plat</th><th>Outcome</th><th>Conf target</th><th>OCR sistem</th><th>GT teks</th><th>Latensi ms</th><th>Catatan</th></tr></thead>
+      <thead><tr><th>Foto</th><th>Model</th><th>Plat di foto?</th><th>Deteksi sistem?</th><th>Outcome</th><th>Conf target</th><th>OCR sistem</th><th>GT teks</th><th>Latensi ms</th><th>Catatan</th></tr></thead>
       <tbody>
       {% for r in rows %}
         <tr>
           <td><a href="{% url 'testing:photo_detail' r.photo.id %}">{{ r.photo.original_name|truncatechars:32 }}</a></td>
           <td class="small">{{ r.photo.model.name|default:'—' }}</td>
-          <td>{{ r.ann.gt_presence|default:'—' }}{% if r.ann.stale %} <span class="badge bg-info text-dark">STALE</span>{% endif %}</td>
+          <td>
+            {% if r.ann.gt_presence == 'ADA' %}<span class="text-success fw-bold">&#10003; Ada</span>
+            {% elif r.ann.gt_presence == 'TIDAK_ADA' %}<span class="text-danger fw-bold">&#10007; Tidak</span>
+            {% else %}—{% endif %}
+            {% if r.ann.stale %}<span class="badge bg-info text-dark">STALE</span>{% endif %}
+          </td>
+          <td>
+            {% if r.ann.detected_ok == 'BENAR' %}<span class="text-success fw-bold">&#10003; Benar</span>
+            {% elif r.ann.detected_ok == 'GAGAL' %}<span class="text-danger fw-bold">&#10007; Gagal</span>
+            {% elif r.ann.detected_ok == 'TIDAK_RELEVAN' %}<span class="text-muted">N/A</span>
+            {% else %}—{% endif %}
+          </td>
           <td>{{ r.outcome|default:'belum dinilai' }}</td>
           <td>{{ r.conf|num }}</td>
           <td><code>{{ r.ocr_text|default:'—' }}</code></td>

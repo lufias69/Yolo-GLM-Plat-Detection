@@ -1,0 +1,452 @@
+{% extends 'testing/base.html' %}
+{% load report_extras %}
+
+{% block title %}Analisis Similarity OCR: {{ batch.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Analisis Similarity OCR — {{ batch.name }}</h1>
+  <div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'testing:batch_ocr_report' batch.id %}">&larr; Laporan OCR</a>
+    <a class="btn btn-sm btn-outline-success" href="{% url 'testing:ocr_export_csv' batch.id %}">Export CSV</a>
+    <a class="btn btn-sm btn-outline-success" href="{% url 'testing:ocr_export_xlsx' batch.id %}">Export Excel</a>
+  </div>
+</div>
+
+<p class="text-muted small">
+  Similarity menunjukkan seberapa dekat teks hasil OCR dengan ground truth.
+  Bila hasil dinyatakan <strong>SALAH</strong>, angka similarity mengukur "seberapa salah":
+  100% = sama persis, 0% = tidak ada kemiripan sama sekali.
+  Nilai rasio di bawah adalah similarity sebelum dikalikan 100.
+</p>
+
+{% if analysis.overall.n_judged == 0 %}
+  <div class="alert alert-secondary">Belum ada penilaian engine OCR di batch ini.</div>
+{% else %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body">
+        <h6 class="text-muted">Total penilaian</h6>
+        <div class="h4">{{ analysis.overall.n_judged }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body">
+        <h6 class="text-muted">Exact match</h6>
+        <div class="h4">{{ analysis.overall.exact }} / {{ analysis.overall.n_judged }}
+          <span class="small text-muted">({{ analysis.overall.exact|pct_of:analysis.overall.n_judged }})</span>
+        </div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body">
+        <h6 class="text-muted">Mean similarity tanpa spasi</h6>
+        <div class="h4">{{ analysis.overall.mean_sim_nospasi|num:'1' }}%</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100"><div class="card-body">
+        <h6 class="text-muted">SALAH tapi similarity &ge; 80%</h6>
+        <div class="h4 text-warning">{{ analysis.overall.wrong_but_similar_80 }}</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-7">
+      <div class="card shadow-sm">
+        <div class="card-header"><strong>Analisis 1 — Perbandingan akurasi antar engine OCR</strong> · statistik exact match & similarity</div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Engine</th>
+                <th>N</th>
+                <th>Exact %</th>
+                <th>Mean sim (−spasi)</th>
+                <th>Mean sim (+spasi)</th>
+                <th>Mean ratio</th>
+                <th>SALAH</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for eng, m in analysis.engines.items %}
+                <tr>
+                  <td><strong>{{ eng }}</strong></td>
+                  <td>{{ m.n }}</td>
+                  <td>{{ m.exact|pct_of:m.n }}</td>
+                  <td>{{ m.mean_sim_nospasi|num:'1' }}%</td>
+                  <td>{{ m.mean_sim_spasi|num:'1' }}%</td>
+                  <td>{{ m.mean_ratio_nospasi|num:'4' }}</td>
+                  <td>{{ m.wrong }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center"><span><strong>Analisis 7 — Visualisasi</strong> · distribusi similarity</span>
+          <div class="btn-group btn-group-sm" role="group" id="simMode">
+            <button type="button" class="btn btn-outline-primary active" data-mode="nospasi">−spasi</button>
+            <button type="button" class="btn btn-outline-primary" data-mode="spasi">+spasi</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <canvas id="simChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><strong>Analisis 1</strong> · <strong>Analisis 5</strong> · <strong>Analisis 6</strong> — Akurasi per engine: CER & char accuracy (1), ketahanan skenario sulit & over-confidence (5), confidence interval 95% (6)</div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Engine</th>
+            <th>Exact % [CI 95%]</th>
+            <th>CER mean ↓</th>
+            <th>Char accuracy ↑</th>
+            <th>Mean conf OCR</th>
+            <th>Exact di foto sulit</th>
+            <th>Over-confident salah (conf ≥ 0,80)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for eng, m in analysis.engines.items %}
+            <tr>
+              <td><strong>{{ eng }}</strong></td>
+              <td>{{ m.exact_rate|pct }} <span class="text-muted small">[{{ m.ci_low|num:'3' }}–{{ m.ci_high|num:'3' }}]</span></td>
+              <td>{{ m.cer_mean|pct }}</td>
+              <td>{{ m.char_accuracy|pct }}</td>
+              <td>{{ m.mean_conf|num:'3' }}</td>
+              <td>{{ m.hard.exact|pct_of:m.hard.n }} <span class="text-muted small">({{ m.hard.exact }}/{{ m.hard.n }})</span></td>
+              <td>{{ m.overconfident.count }} <span class="text-muted small">({{ m.overconfident.count|pct_of:m.overconfident.n }})</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header"><strong>Analisis 7 — Visualisasi</strong> · bar chart exact match % per engine</div>
+        <div class="card-body"><canvas id="exactChart" height="200"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header"><strong>Analisis 7 — Visualisasi</strong> · box plot sebaran similarity per engine (min–Q1–median–Q3–maks)</div>
+        <div class="card-body"><canvas id="boxChart" height="200"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><strong>Analisis 4 — End-to-end pipeline accuracy</strong> · deteksi benar <em>dan</em> OCR benar per engine</div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Engine</th>
+            <th>N (foto ADA + deteksi dinilai)</th>
+            <th>E2E sukses %</th>
+            <th>Deteksi benar, OCR salah</th>
+            <th>Gagal deteksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for eng, m in analysis.engines.items %}
+            <tr>
+              <td><strong>{{ eng }}</strong></td>
+              <td>{{ m.e2e.n }}</td>
+              <td>{{ m.e2e.success|pct_of:m.e2e.n }}</td>
+              <td>{{ m.e2e.detected_ok_but_wrong }}</td>
+              <td>{{ m.e2e.detection_failed }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><strong>Analisis 2 — Error pattern analysis</strong> · karakter, posisi, dan panjang plat (−spasi, hanya hasil SALAH)</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <h6>Posisi karakter salah</h6>
+          <table class="table table-sm">
+            <tr><td>Depan</td><td>{{ analysis.error_patterns.positions.depan }}</td></tr>
+            <tr><td>Tengah</td><td>{{ analysis.error_patterns.positions.tengah }}</td></tr>
+            <tr><td>Belakang</td><td>{{ analysis.error_patterns.positions.belakang }}</td></tr>
+          </table>
+          <h6>Panjang plat vs kesalahan</h6>
+          <table class="table table-sm">
+            <thead><tr><th>Panjang GT</th><th>Foto salah</th><th>Karakter salah</th><th>Salah/foto</th></tr></thead>
+            <tbody>
+              {% for L, d in analysis.error_patterns.by_length.items %}
+                <tr><td>{{ L }}</td><td>{{ d.n }}</td><td>{{ d.errors }}</td><td>{{ d.errors|num:'2' }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-8">
+          <h6>Konusi karakter GT → hasil OCR (heatmap)</h6>
+          {% if analysis.error_patterns.heatmap.rows %}
+          <div class="table-responsive">
+            <table class="table table-sm mb-1" style="font-size:.75rem;">
+              <thead><tr><th>GT \ OCR</th>
+                {% for c in analysis.error_patterns.heatmap.cols %}<th class="text-center">{{ c }}</th>{% endfor %}
+              </tr></thead>
+              <tbody>
+                {% for g in analysis.error_patterns.heatmap.rows %}
+                  <tr>
+                    <th>{{ g }}</th>
+                    {% for c in analysis.error_patterns.heatmap.cols %}
+                      {% with cell=analysis.error_patterns.heatmap.cells|getitem:g|getitem:c %}
+                        <td class="text-center"
+                            {% if cell %}style="background:rgba(220,53,69,{{ cell.alpha|stringformat:'f' }});color:{% if cell.alpha > 0.5 %}white{% else %}inherit{% endif %}"{% endif %}>
+                          {{ cell.n|default:'' }}
+                        </td>
+                      {% endwith %}
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p class="small text-muted mb-2">Baris = karakter GT, kolom = karakter yang dibaca OCR ('−' = karakter hilang). Warna = intensitas proporsi per karakter GT.</p>
+          {% else %}
+          <p class="text-muted">Belum ada pola substitution/deletion yang tercatat.</p>
+          {% endif %}
+          <h6>Top pasangan salah</h6>
+          <table class="table table-sm">
+            <thead><tr><th>GT</th><th>Dibaca</th><th>Jumlah</th></tr></thead>
+            <tbody>
+              {% for p in analysis.error_patterns.confusions|slice:':15' %}
+                <tr><td><code>{{ p.gt }}</code></td><td><code>{{ p.pred }}</code></td><td>{{ p.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header"><strong>Analisis 7 — Visualisasi</strong> · scatter confidence OCR vs similarity per engine</div>
+        <div class="card-body"><canvas id="confChart" height="240"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header"><strong>Analisis 6 — Statistik inferensial</strong> · uji McNemar exact antar engine (berpasangan per foto)</div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Engine A vs B</th><th>A benar/B salah</th><th>A salah/B benar</th><th>p-value</th></tr></thead>
+            <tbody>
+              {% for c in analysis.comparisons.pairs %}
+                <tr>
+                  <td>{{ c.engines.0 }} vs {{ c.engines.1 }}</td>
+                  <td>{{ c.b }}</td>
+                  <td>{{ c.c }}</td>
+                  <td>{{ c.p_value|pval }}{% if c.significant %} <span class="badge bg-success">signifikan</span>{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if not analysis.comparisons.available %}
+          <div class="alert alert-warning small mb-0">Belum cukup pasangan diskordan untuk uji signifikansi.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><strong>Analisis 1 — Perbandingan akurasi antar engine OCR</strong> · tabel distribusi similarity per engine</div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped mb-0">
+        <thead>
+          <tr>
+            <th rowspan="2">Engine</th>
+            <th colspan="5" class="text-center border-start">Tanpa spasi (−spasi)</th>
+            <th colspan="5" class="text-center border-start">Dengan spasi (+spasi)</th>
+          </tr>
+          <tr>
+            <th class="border-start">0–25%</th><th>25–50%</th><th>50–75%</th><th>75–100%</th><th>100%</th>
+            <th class="border-start">0–25%</th><th>25–50%</th><th>50–75%</th><th>75–100%</th><th>100%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for eng, m in analysis.engines.items %}
+            <tr>
+              <td><strong>{{ eng }}</strong></td>
+              {% for label, count in m.bins_nospasi.items %}
+                <td{% if forloop.first %} class="border-start"{% endif %}>{{ count }}</td>
+              {% endfor %}
+              {% for label, count in m.bins_spasi.items %}
+                <td{% if forloop.first %} class="border-start"{% endif %}>{{ count }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="alert alert-info small">
+    <strong>Analisis 3 — Pengaruh kondisi citra</strong> belum tersedia: metadata sudut, pencahayaan, blur, dan oklusi tidak direkam saat proses inference/upload, sehingga tidak ada data untuk dianalisis.
+  </div>
+
+  {% if analysis.wrong_but_similar %}
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Analisis 2 — Error pattern analysis</strong> · foto SALAH tapi similarity tinggi (&ge; 80%)</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Engine</th>
+              <th>Hasil OCR</th>
+              <th>Ground truth</th>
+              <th>Sim −spasi</th>
+              <th>Sim +spasi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for w in analysis.wrong_but_similar %}
+              <tr>
+                <td class="p-1">
+                  <a href="{% url 'testing:photo_detail' w.photo.id %}">
+                    {% if w.photo.annotated_image %}
+                      <img src="{{ w.photo.annotated_image.url }}" alt="foto" style="height:56px;width:84px;object-fit:cover;border-radius:4px;">
+                    {% elif w.photo.image %}
+                      <img src="{{ w.photo.image.url }}" alt="foto" style="height:56px;width:84px;object-fit:cover;border-radius:4px;">
+                    {% else %}—{% endif %}
+                  </a>
+                </td>
+                <td>{{ w.engine }}</td>
+                <td><code>{{ w.text|default:'—' }}</code></td>
+                <td><code>{{ w.gt|default:'—' }}</code></td>
+                <td>{{ w.sim_nospasi }}%</td>
+                <td>{{ w.sim_spasi }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  <script>
+  (function () {
+    const COLORS = ['#0d6efd', '#20c997', '#ffc107', '#dc3545', '#6f42c1'];
+    // Label angka di atas batang; suffix opsional (mis. '%'). Dipakai beberapa chart.
+    const mkValueLabels = (suffix) => ({
+      id: 'valueLabels',
+      afterDatasetsDraw(chart) {
+        const {ctx} = chart;
+        ctx.save();
+        ctx.font = '11px sans-serif';
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'center';
+        chart.data.datasets.forEach((ds, di) => {
+          const meta = chart.getDatasetMeta(di);
+          if (meta.hidden) return;
+          meta.data.forEach((bar, i) => {
+            const v = ds.data[i];
+            if (v === undefined || v === null) return;
+            const label = typeof v === 'object' && !Array.isArray(v) ? ''
+              : Array.isArray(v) ? v[0] + '–' + v[1] + (suffix || '') : v + (suffix || '');
+            if (label) ctx.fillText(label, bar.x, bar.y - 3);
+          });
+        });
+        ctx.restore();
+      }
+    });
+    const valueLabels = mkValueLabels();
+    const ctx = document.getElementById('simChart');
+    if (ctx) {
+      const data = {{ chart_data_json|safe }};
+      const mkDatasets = (key) => data[key].map((d, i) => ({...d,
+        backgroundColor: COLORS[i % COLORS.length]}));
+      const simChart = new Chart(ctx, {
+        type: 'bar',
+        data: {labels: data.labels, datasets: mkDatasets('datasets')},
+        plugins: [valueLabels],
+        options: {
+          responsive: true,
+          layout: {padding: {top: 14}},
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { beginAtZero: true, grace: '8%', title: { display: true, text: 'Jumlah penilaian' } } }
+        }
+      });
+      document.querySelectorAll('#simMode button').forEach(btn => btn.addEventListener('click', () => {
+        document.querySelectorAll('#simMode button').forEach(b => b.classList.toggle('active', b === btn));
+        simChart.data.datasets = mkDatasets(btn.dataset.mode === 'spasi' ? 'datasets_spasi' : 'datasets');
+        simChart.update();
+      }));
+    }
+    const charts = {{ charts_json|safe }};
+    const exactCtx = document.getElementById('exactChart');
+    if (exactCtx) {
+      new Chart(exactCtx, {
+        type: 'bar',
+        data: {labels: charts.exact.labels,
+               datasets: [{label: 'Exact match %', data: charts.exact.data,
+                           backgroundColor: COLORS}]},
+        plugins: [mkValueLabels('%')],
+        options: {responsive: true, layout: {padding: {top: 14}},
+                  plugins: {legend: {display: false}},
+                  scales: {y: {beginAtZero: true, max: 100, grace: '8%'}}}
+      });
+    }
+    const boxCtx = document.getElementById('boxChart');
+    if (boxCtx) {
+      // Box "manual": floating bar Q1–Q3 + titik min/median/maks per engine.
+      const boxData = charts.quartiles.datasets.map((d, i) => ({
+        type: 'bar', label: d.label + ' Q1–Q3',
+        data: [[d.data[1], d.data[2]]], backgroundColor: COLORS[i % COLORS.length] + '80',
+        barPercentage: .5, categoryPercentage: .4 }));
+      const marks = [];
+      charts.quartiles.datasets.forEach((d, i) => {
+        marks.push({type: 'scatter', label: d.label + ' min/med/maks',
+                    data: [{x: i - 0.25, y: d.data[0]}, {x: i, y: d.data[2]}, {x: i + 0.25, y: d.data[3]}],
+                    backgroundColor: COLORS[i % COLORS.length], pointRadius: 4});
+      });
+      new Chart(boxCtx, {
+        type: 'bar',
+        data: {labels: charts.quartiles.datasets.map(d => d.label),
+               datasets: boxData.concat(marks)},
+        options: {responsive: true, plugins: {legend: {position: 'bottom', labels: {boxWidth: 10}}},
+                  scales: {x: {type: 'category'},
+                           y: {min: 0, max: 100, title: {display: true, text: 'Similarity %'}}}}
+      });
+    }
+    const confCtx = document.getElementById('confChart');
+    if (confCtx) {
+      new Chart(confCtx, {
+        type: 'scatter',
+        data: {datasets: charts.scatter.datasets.map((d, i) => ({...d,
+          backgroundColor: COLORS[i % COLORS.length], pointRadius: 4}))},
+        options: {responsive: true, plugins: {legend: {position: 'bottom'}},
+                  scales: {x: {min: 0, max: 1, title: {display: true, text: 'Confidence OCR'}},
+                           y: {min: 0, max: 100, title: {display: true, text: 'Similarity %'}}}}
+      });
+    }
+  })();
+  </script>
+
+{% endif %}
+{% endblock %}

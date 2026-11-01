@@ -58,6 +58,12 @@ class Photo(models.Model):
         return self.system_result.get('operational_boxes', [])
 
     @property
+    def ocr_all(self):
+        """[(engine, text)] hasil OCR tersimpan pada crop target."""
+        return [(e.get('engine', '?'), e.get('text', ''))
+                for e in (self.system_result.get('ocr_all') or [])]
+
+    @property
     def operational_detections(self):
         """Detections at/above the operational threshold, with their stored index."""
         return [d for d in self.system_result.get('detections', [])
@@ -110,6 +116,26 @@ class Annotation(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+    @property
+    def judgment_rows(self):
+        """Baris tabel ringkasan: engine, teks OCR, ok, wrong_chars (urutan = ocr_all foto)."""
+        judgments = {j.engine: j for j in self.engine_judgments.all()}
+        rows = []
+        for eng, text in self.photo.ocr_all:
+            j = judgments.pop(eng, None)
+            rows.append({'engine': eng, 'text': text,
+                         'ok': j.ok if j else '', 'wrong': j.wrong_chars if j else None,
+                         'sim_nospasi': j.sim_nospasi if j else None,
+                         'sim_spasi': j.sim_spasi if j else None,
+                         'ratio_nospasi': j.ratio_nospasi if j else None,
+                         'ratio_spasi': j.ratio_spasi if j else None})
+        for eng, j in judgments.items():  # engine lama yang tak ada di hasil saat ini
+            rows.append({'engine': eng, 'text': '',
+                         'ok': j.ok, 'wrong': j.wrong_chars,
+                         'sim_nospasi': j.sim_nospasi, 'sim_spasi': j.sim_spasi,
+                         'ratio_nospasi': j.ratio_nospasi, 'ratio_spasi': j.ratio_spasi})
+        return rows
 
 
 class ConsistencyRun(models.Model):
@@ -183,6 +209,14 @@ class EngineJudgment(models.Model):
     wrong_chars = models.PositiveIntegerField(null=True, blank=True,
                                               help_text='Jumlah karakter salah; kosong = dihitung otomatis')
     note = models.CharField(max_length=300, blank=True, default='')
+    sim_nospasi = models.PositiveIntegerField(
+        null=True, blank=True, help_text='% similarity vs GT setelah spasi dihapus')
+    sim_spasi = models.PositiveIntegerField(
+        null=True, blank=True, help_text='% similarity vs GT dengan spasi dipertahankan')
+    ratio_nospasi = models.FloatField(
+        null=True, blank=True, help_text='Rasio kemiripan 0.0-1.0 vs GT setelah spasi dihapus')
+    ratio_spasi = models.FloatField(
+        null=True, blank=True, help_text='Rasio kemiripan 0.0-1.0 vs GT dengan spasi dipertahankan')
     judged_at = models.DateTimeField(auto_now=True)
 
     class Meta:

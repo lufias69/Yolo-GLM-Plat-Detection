@@ -22,8 +22,41 @@
           {% if photo.annotation.stale %}
             <span class="badge bg-info text-dark mb-1">Penilaian STALE</span>
           {% else %}
-            <span class="badge bg-primary mb-1">Dinilai</span>
+            <span class="badge bg-success mb-1">Dinilai</span>
           {% endif %}
+          <div class="border rounded p-1 mb-1 bg-light photo-sim" data-gt="{{ photo.annotation.gt_text }}">
+            <div class="small fw-semibold text-center font-monospace">{{ photo.annotation.gt_text|default:'—' }}</div>
+            <table class="table table-sm mb-1 w-100" style="font-size:.68rem;table-layout:fixed">
+              <colgroup><col style="width:24%"><col style="width:28%"><col style="width:7%"><col style="width:17%"><col style="width:12%"><col style="width:12%"></colgroup>
+              <tr class="sim-head d-none">
+                <th class="py-0 border-0 fw-normal text-muted">engine</th>
+                <th class="py-0 border-0 fw-normal text-muted">bacaan</th>
+                <th class="py-0 border-0"></th>
+                <th class="py-0 border-0 fw-normal text-muted text-end">slh</th>
+                <th class="py-0 border-0 fw-normal text-muted text-end" title="similarity vs GT, spasi dihapus">−spasi</th>
+                <th class="py-0 border-0 fw-normal text-muted text-end" title="similarity vs GT, spasi dipertahankan">+spasi</th>
+              </tr>
+              {% for j in photo.annotation.judgment_rows %}
+                <tr data-ocr="{{ j.text }}">
+                  <td class="py-0 border-0 text-truncate">{{ j.engine }}</td>
+                  <td class="py-0 border-0 font-monospace text-break">{{ j.text|default:'—' }}</td>
+                  <td class="py-0 border-0 text-center">
+                    {% if j.ok == 'BENAR' %}<span class="text-success fw-bold" title="Benar">&#10003;</span>
+                    {% elif j.ok == 'SALAH' %}<span class="text-danger fw-bold" title="Salah">&#10007;</span>
+                    {% else %}<span class="text-muted">–</span>{% endif %}
+                  </td>
+                  <td class="py-0 border-0 text-end">{% if j.wrong != None %}{{ j.wrong }} slh{% endif %}</td>
+                  <td class="py-0 border-0 text-end sim-col d-none font-monospace">{% if j.sim_nospasi != None %}{{ j.sim_nospasi }}%{% endif %}</td>
+                  <td class="py-0 border-0 text-end sim-col d-none font-monospace">{% if j.sim_spasi != None %}{{ j.sim_spasi }}%{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </table>
+            <button type="button" class="btn btn-sm btn-outline-info w-100 sim-btn" style="font-size:.72rem">
+              Tampilkan similarity</button>
+            {% if photo.annotation.note %}
+              <div class="small text-muted text-truncate" title="{{ photo.annotation.note }}">{{ photo.annotation.note }}</div>
+            {% endif %}
+          </div>
         {% else %}
           <span class="badge bg-secondary mb-1">Belum dinilai</span>
         {% endif %}

@@ -35,7 +35,7 @@ class AnnotationForm(forms.ModelForm):
         for eng in self.engines:
             self.fields[f'eng_ok_{eng}'] = forms.ChoiceField(
                 choices=OK_CHOICES, required=False, label=eng,
-                widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+                widget=forms.RadioSelect(attrs={'class': 'btn-check'}),
                 initial=existing.get(eng).ok if eng in existing else None)
             self.fields[f'eng_wrong_{eng}'] = forms.IntegerField(
                 required=False, min_value=0, label='karakter salah',
@@ -88,8 +88,9 @@ class AnnotationForm(forms.ModelForm):
                 (self.photo.system_result.get('ocr_all') or [])} if self.photo else {}
 
     def save_judgments(self, annotation):
+        import re
         from anpr.postprocessing import normalize_plate_text
-        from testing.services.metrics import levenshtein_distance
+        from testing.services.metrics import levenshtein_distance, similarity, similarity_ratio
         results = self.engine_results()
         gt = annotation.gt_text or results.get(self.main_engine, '')
         for eng in self.engines:
@@ -97,7 +98,14 @@ class AnnotationForm(forms.ModelForm):
             wrong = self.cleaned_data.get(f'eng_wrong_{eng}')
             if wrong is None and ok == 'SALAH':
                 wrong = levenshtein_distance(normalize_plate_text(results.get(eng, '')), gt)
+            text = results.get(eng, '')
+            text_nospasi = re.sub(r'\s+', '', text)
+            gt_nospasi = re.sub(r'\s+', '', gt)
             EngineJudgment.objects.update_or_create(
                 annotation=annotation, engine=eng,
                 defaults={'ok': ok, 'wrong_chars': wrong,
-                          'note': self.cleaned_data.get(f'eng_note_{eng}', '')})
+                          'note': self.cleaned_data.get(f'eng_note_{eng}', ''),
+                          'sim_nospasi': similarity(text_nospasi, gt_nospasi),
+                          'sim_spasi': similarity(text, gt),
+                          'ratio_nospasi': similarity_ratio(text_nospasi, gt_nospasi),
+                          'ratio_spasi': similarity_ratio(text, gt)})

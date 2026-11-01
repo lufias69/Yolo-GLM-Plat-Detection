@@ -1,0 +1,174 @@
+{% extends 'testing/base.html' %}
+
+{% block title %}Laporan OCR: {{ batch.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Laporan OCR vs Ground Truth — {{ batch.name }}</h1>
+  <div>
+    <a class="btn btn-sm btn-outline-success" href="{% url 'testing:ocr_export_csv' batch.id %}">Export CSV</a>
+    <a class="btn btn-sm btn-outline-success" href="{% url 'testing:ocr_export_xlsx' batch.id %}">Export Excel</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'testing:batch_ocr_analysis' batch.id %}">Analisis similarity</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'testing:batch_detail' batch.id %}">&larr; Batch</a>
+  </div>
+</div>
+
+{% if unrated %}
+  <div class="alert alert-warning py-2">
+    <strong>{{ unrated|length }} foto belum dinilai / tidak memiliki similarity:</strong>
+    {% for r in unrated %}
+      <a href="{% url 'testing:photo_detail' r.photo.id %}" class="me-2">{{ r.photo.original_name|truncatechars:28 }}</a>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-header py-2">Rekap per foto — hasil OCR tiap engine vs GT (similarity %)</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle mb-0" style="font-size:.8rem">
+      <thead>
+        <tr>
+          <th rowspan="2">#</th>
+          <th rowspan="2">Gambar</th>
+          <th rowspan="2">GT</th>
+          <th rowspan="2" class="text-center">Plat di<br>foto?</th>
+          <th rowspan="2" class="text-center">Deteksi<br>sistem?</th>
+          {% for e in engines %}<th colspan="4" class="text-center border-start">{{ e }}</th>{% endfor %}
+        </tr>
+        <tr>
+          {% for e in engines %}
+            <th class="border-start">bacaan</th><th class="text-center">nilai</th><th>slh</th><th>−spasi / +spasi</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr{% if r.unrated %} class="table-warning"{% endif %}>
+            <td class="text-center">
+              {% if r.photo.annotated_image or r.photo.image %}
+                <a href="#" class="photo-modal-link d-inline-block fw-semibold" data-name="{{ r.photo.original_name }}"
+                   data-img="{% if r.photo.annotated_image %}{{ r.photo.annotated_image.url }}{% else %}{{ r.photo.image.url }}{% endif %}"
+                   data-detail="{% url 'testing:photo_detail' r.photo.id %}">
+                  {{ forloop.counter }}
+                </a>
+              {% else %}
+                {{ forloop.counter }}
+              {% endif %}
+              {% if r.ann.stale %}<span class="badge bg-info text-dark d-block mt-1" style="font-size:.55rem">STALE</span>{% endif %}</td>
+            <td class="p-1">
+              {% if r.photo.annotated_image %}
+                <a href="{% url 'testing:photo_detail' r.photo.id %}"><img src="{{ r.photo.annotated_image.url }}" alt="{{ r.photo.original_name }}" style="height:64px;width:96px;object-fit:cover;border-radius:4px;"></a>
+              {% elif r.photo.image %}
+                <a href="{% url 'testing:photo_detail' r.photo.id %}"><img src="{{ r.photo.image.url }}" alt="{{ r.photo.original_name }}" style="height:64px;width:96px;object-fit:cover;border-radius:4px;"></a>
+              {% else %}—{% endif %}
+            </td>
+            <td><code>{{ r.ann.gt_text|default:'—' }}</code></td>
+            <td class="text-center">
+              {% if r.ann.gt_presence == 'ADA' %}<span class="text-success fw-bold">&#10003;</span>
+              {% elif r.ann.gt_presence == 'TIDAK_ADA' %}<span class="text-danger fw-bold">&#10007;</span>
+              {% else %}<span class="text-muted">–</span>{% endif %}
+            </td>
+            <td class="text-center">
+              {% if r.ann.detected_ok == 'BENAR' %}<span class="text-success fw-bold">&#10003;</span>
+              {% elif r.ann.detected_ok == 'GAGAL' %}<span class="text-danger fw-bold">&#10007;</span>
+              {% elif r.ann.detected_ok == 'TIDAK_RELEVAN' %}<span class="text-muted">N/A</span>
+              {% else %}<span class="text-muted">–</span>{% endif %}
+            </td>
+            {% for c in r.cells %}
+              <td class="border-start"><code>{{ c.text|default:'—' }}</code></td>
+              <td class="text-center">
+                {% if c.ok == 'BENAR' %}<span class="text-success fw-bold">&#10003;</span>
+                {% elif c.ok == 'SALAH' %}<span class="text-danger fw-bold">&#10007;</span>
+                {% else %}<span class="text-muted">–</span>{% endif %}
+              </td>
+              <td>{% if c.wrong != None %}{{ c.wrong }}{% else %}—{% endif %}</td>
+              <td>
+                {% if c.sim_nospasi != None %}
+                  {{ c.sim_nospasi }}% / {{ c.sim_spasi }}%
+                  <span class="text-muted">({{ c.ratio_nospasi|floatformat:4 }} / {{ c.ratio_spasi|floatformat:4 }})</span>
+                {% else %}<span class="text-muted">belum dinilai</span>{% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="photoModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header-bar d-flex justify-content-between align-items-center mb-2">
+      <h5 class="modal-title mb-0" id="photoModalLabel">Preview</h5>
+      <button type="button" class="btn-close" id="photoModalClose" aria-label="Tutup"></button>
+    </div>
+    <div class="text-center mb-3">
+      <img id="photoModalImg" src="" alt="" class="img-fluid border rounded" style="max-height:65vh;">
+    </div>
+    <div class="d-flex gap-2 justify-content-end">
+      <button type="button" class="btn btn-outline-secondary" id="photoModalCopy">Salin nama</button>
+      <a href="#" class="btn btn-primary" id="photoModalDetail">Buka halaman nilai</a>
+      <button type="button" class="btn btn-secondary" id="photoModalCloseBtn">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1050;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal-box {
+  background: #fff; border-radius: .5rem;
+  max-width: 90vw; max-height: 90vh;
+  padding: 1rem; box-shadow: 0 .5rem 1rem rgba(0,0,0,.25);
+  overflow: auto;
+}
+.btn-close { background: transparent; border: 0; font-size: 1.5rem; line-height: 1; }
+</style>
+
+<script>
+(function () {
+  const overlay = document.getElementById('photoModal');
+  const img = document.getElementById('photoModalImg');
+  const label = document.getElementById('photoModalLabel');
+  const detail = document.getElementById('photoModalDetail');
+  const copyBtn = document.getElementById('photoModalCopy');
+  let currentName = '';
+
+  function openModal(name, src, detailUrl) {
+    currentName = name;
+    img.src = src;
+    img.alt = name;
+    label.textContent = name;
+    detail.href = detailUrl;
+    overlay.style.display = 'flex';
+  }
+
+  function closeModal() { overlay.style.display = 'none'; img.src = ''; }
+
+  document.querySelectorAll('.photo-modal-link').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      openModal(a.dataset.name, a.dataset.img, a.dataset.detail);
+    });
+  });
+
+  document.getElementById('photoModalClose').addEventListener('click', closeModal);
+  document.getElementById('photoModalCloseBtn').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.style.display === 'flex') closeModal(); });
+
+  copyBtn.addEventListener('click', () => {
+    if (!currentName) return;
+    navigator.clipboard.writeText(currentName).then(() => {
+      const old = copyBtn.textContent;
+      copyBtn.textContent = 'Tersalin!';
+      setTimeout(() => copyBtn.textContent = old, 1200);
+    });
+  });
+})();
+</script>
+{% endblock %}

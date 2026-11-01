@@ -93,3 +93,43 @@ class ExportEngineJudgmentColumnsTest(TestCase):
         self.assertEqual(rows[1][i], 'SALAH')
         self.assertEqual(rows[1][i + 1], 2)
         self.assertEqual(rows[1][i + 2], 'E jadi 8')
+
+
+class ExportOcrReportTest(TestCase):
+    def test_ocr_export_rows(self):
+        from testing.models import EngineJudgment
+        batch = TestBatch.objects.create(name='BO')
+        s = sr()
+        s['ocr_all'] = [
+            {'engine': 'easyocr', 'text': 'DR 1282 AS', 'conf': 0.9},
+            {'engine': 'paddleocr', 'text': 'DR 1282 AS', 'conf': 0.9},
+            {'engine': 'tesseract', 'text': 'DR 1282 AS', 'conf': 0.9},
+            {'engine': 'glm-ocr', 'text': 'DR 1282 AS', 'conf': 0.9},
+        ]
+        p = Photo.objects.create(batch=batch, original_name='o.jpg', status='done', system_result=s)
+        ann = Annotation.objects.create(photo=p, gt_presence='ADA', detected_ok='BENAR',
+                                        ocr_ok='BENAR', gt_text='DR 1282 AS')
+        EngineJudgment.objects.create(annotation=ann, engine='easyocr', ok='BENAR',
+                                      sim_nospasi=100, sim_spasi=100,
+                                      ratio_nospasi=1.0, ratio_spasi=1.0)
+        rows = export.ocr_rows(batch)
+        header = rows[0]
+        self.assertIn('sim_tanpa_spasi_easyocr', header)
+        self.assertIn('ratio_tanpa_spasi_easyocr', header)
+        data = rows[1]
+        self.assertEqual(data[header.index('bacaan_easyocr')], 'DR 1282 AS')
+        self.assertEqual(data[header.index('nilai_easyocr')], 'BENAR')
+
+    def test_ocr_csv_bom(self):
+        batch = TestBatch.objects.create(name='BC')
+        Photo.objects.create(batch=batch, original_name='x.jpg', status='done', system_result=sr())
+        text = export.ocr_to_csv(batch)
+        self.assertTrue(text.startswith('﻿'))
+
+    def test_ocr_xlsx_single_sheet(self):
+        batch = TestBatch.objects.create(name='BX')
+        Photo.objects.create(batch=batch, original_name='x.jpg', status='done', system_result=sr())
+        data = export.ocr_to_xlsx(batch)
+        wb = load_workbook(io.BytesIO(data))
+        self.assertEqual(wb.sheetnames, ['OCR Report'])
+        self.assertGreaterEqual(wb['OCR Report'].max_row, 2)

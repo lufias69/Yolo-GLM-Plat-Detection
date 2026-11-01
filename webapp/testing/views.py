@@ -8,7 +8,8 @@ from django.views.decorators.http import require_POST
 
 from .models import Annotation, ConsistencyRun, Photo, TestBatch, YoloModel
 from .forms import AnnotationForm
-from .services import consistency, export, metrics, workers
+from .services import consistency, export, metrics, ocr_analysis, workers
+from .services.metrics import similarity_ratio
 from .services.inference import get_service  # used by quick_test
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'webp', 'bmp'}
@@ -29,7 +30,7 @@ def home(request):
 
 def batch_detail(request, batch_id):
     batch = get_object_or_404(TestBatch, pk=batch_id)
-    photos = batch.photos.select_related('annotation').all()
+    photos = batch.photos.select_related('annotation').prefetch_related('annotation__engine_judgments').all()
     pending_ids = [p.id for p in photos if p.status in ('queued', 'processing')]
     return render(request, 'testing/batch_detail.html',
                   {'batch': batch, 'photos': photos, 'pending_ids': pending_ids})
@@ -54,6 +55,18 @@ def next_unannotated(request, batch_id):
     return redirect('testing:photo_detail', photo_id=nxt.id)
 
 
+def _annotated_stats(batch):
+    photos = batch.photos.select_related('annotation').filter(status='done')
+    total = 0
+    done = 0
+    for p in photos:
+        total += 1
+        ann = getattr(p, 'annotation', None)
+        if ann is not None and ann.is_complete() and not ann.stale:
+            done += 1
+    return done, total
+
+
 def _engine_rows(form):
     results = form.engine_results()
     rows = []
@@ -76,8 +89,10 @@ def photo_detail(request, photo_id):
         return redirect('testing:batch_detail', batch_id=photo.batch_id)
     ann = getattr(photo, 'annotation', None)
     form = AnnotationForm(instance=ann, photo=photo)
+    done, total = _annotated_stats(photo.batch)
     return render(request, 'testing/photo_detail.html', {
         'photo': photo, 'form': form, 'batch': photo.batch,
+        'progress_done': done, 'progress_total': total,
         'detections': photo.system_result.get('detections', []),
         'operational': photo.operational_boxes,
         'engine_rows': _engine_rows(form),
@@ -96,13 +111,13 @@ def annotate(request, photo_id):
         ann, _ = Annotation.objects.update_or_create(
             photo=photo, defaults={**cd, 'stale': False})
         form.save_judgments(ann)
-        if request.POST.get('next'):
-            nxt = _next_unannotated(photo.batch, after_id=photo.id)
-            if nxt is not None:
-                return redirect('testing:photo_detail', photo_id=nxt.id)
-            return redirect('testing:batch_detail', batch_id=photo.batch_id)
-        messages.success(request, 'Penilaian tersimpan.')
-        return redirect('testing:photo_detail', photo_id=photo.id)
+        done, total = _annotated_stats(photo.batch)
+        nxt = _next_unannotated(photo.batch)
+        if nxt is not None:
+            messages.success(request, f'Penilaian tersimpan. Progres {done}/{total} foto — lanjut ke foto berikutnya.')
+            return redirect('testing:photo_detail', photo_id=nxt.id)
+        messages.success(request, f'Penilaian tersimpan. Selesai semua {total}/{total} foto.')
+        return redirect('testing:batch_detail', batch_id=photo.batch_id)
     return render(request, 'testing/photo_detail.html', {
         'photo': photo, 'form': form, 'batch': photo.batch,
         'detections': photo.system_result.get('detections', []),
@@ -146,6 +161,84 @@ def reprocess_photo(request, photo_id):
 def photo_status(request, photo_id):
     photo = get_object_or_404(Photo, pk=photo_id)
     return JsonResponse({'status': photo.status, 'error_message': photo.error_message})
+
+
+def batch_ocr_report(request, batch_id):
+    """Rekap GT vs hasil OCR semua engine: similarity, benar/salah, jumlah salah,
+    plus daftar foto yang belum dinilai / tanpa similarity."""
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    engines = []
+    for p in batch.photos.filter(status='done'):
+        for e in p.system_result.get('ocr_all') or []:
+            if e.get('engine') not in engines:
+                engines.append(e['engine'])
+    rows = []
+    for p in batch.photos.select_related('annotation').prefetch_related(
+            'annotation__engine_judgments').all():
+        if p.status != 'done':
+            continue
+        ann = getattr(p, 'annotation', None)
+        import re
+        texts = {e['engine']: e.get('text', '') for e in p.system_result.get('ocr_all') or []}
+        judgments = {j.engine: j for j in ann.engine_judgments.all()} if ann else {}
+        gt = ann.gt_text if ann else ''
+        cells = []
+        for e in engines:
+            j = judgments.get(e)
+            text = texts.get(e, '')
+            text_ns = re.sub(r'\s+', '', text)
+            gt_ns = re.sub(r'\s+', '', gt)
+            sim_ns = j.sim_nospasi if j else None
+            sim_sp = j.sim_spasi if j else None
+            ratio_ns = j.ratio_nospasi if j else None
+            ratio_sp = j.ratio_spasi if j else None
+            if ratio_ns is None and sim_ns is not None:
+                ratio_ns = similarity_ratio(text_ns, gt_ns) if gt_ns else (1.0 if sim_ns == 100 else sim_ns / 100.0)
+            if ratio_sp is None and sim_sp is not None:
+                ratio_sp = similarity_ratio(text, gt) if gt else (1.0 if sim_sp == 100 else sim_sp / 100.0)
+            cells.append({'engine': e, 'text': text,
+                          'ok': j.ok if j else '', 'wrong': j.wrong_chars if j else None,
+                          'sim_nospasi': sim_ns,
+                          'sim_spasi': sim_sp,
+                          'ratio_nospasi': ratio_ns,
+                          'ratio_spasi': ratio_sp})
+        rows.append({
+            'photo': p, 'ann': ann, 'cells': cells,
+            'unrated': ann is None or not ann.is_complete(),
+        })
+    unrated = [r for r in rows if r['unrated']]
+    return render(request, 'testing/ocr_report.html', {
+        'batch': batch, 'engines': engines, 'rows': rows, 'unrated': unrated,
+    })
+
+
+def batch_ocr_analysis_view(request, batch_id):
+    """Halaman analisis similarity OCR: seberapa salah hasil yang salah."""
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    analysis = ocr_analysis.analyze_ocr_similarity(batch)
+    return render(request, 'testing/ocr_analysis.html', {
+        'batch': batch,
+        'analysis': analysis,
+        'chart_data_json': json.dumps(ocr_analysis.chart_data(analysis)),
+        'charts_json': json.dumps(ocr_analysis.chart_data_all(analysis)),
+    })
+
+
+def batch_ocr_export_csv(request, batch_id):
+    from django.http import HttpResponse
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    resp = HttpResponse(export.ocr_to_csv(batch), content_type='text/csv; charset=utf-8')
+    resp['Content-Disposition'] = f'attachment; filename="batch_{batch_id}_ocr.csv"'
+    return resp
+
+
+def batch_ocr_export_xlsx(request, batch_id):
+    from django.http import HttpResponse
+    batch = get_object_or_404(TestBatch, pk=batch_id)
+    resp = HttpResponse(export.ocr_to_xlsx(batch),
+                        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    resp['Content-Disposition'] = f'attachment; filename="batch_{batch_id}_ocr.xlsx"'
+    return resp
 
 
 def batch_report_view(request, batch_id):

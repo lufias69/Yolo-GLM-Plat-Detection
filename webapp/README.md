@@ -27,7 +27,29 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
    exact match, char accuracy, CER, latensi; export CSV/Excel.
    Laporan juga memuat **tabel perbandingan engine OCR** (exact match & char accuracy per
    engine dari penilaian manual); export menambah kolom nilai_/slh_karakter_/catatan_<engine>.
-5. "Uji konsistensi…" (hanya untuk foto yang sudah dinilai DAN minimal terdeteksi
+5. "Laporan OCR" (`/batch/<id>/report/ocr/`) menampilkan GT vs bacaan semua engine per foto,
+   dengan similarity & ratio per engine (tersimpan di `EngineJudgment.sim_nospasi/sim_spasi/
+   ratio_nospasi/ratio_spasi` — dihitung saat menyimpan form penilaian). Export CSV/Excel
+   laporan OCR tersedia di halaman ini.
+6. **"Analisis similarity OCR"** (`/batch/<id>/report/ocr/analysis/`) — jawaban "kalau OCR
+   salah, seberapa salah?". Bagian bernomor sesuai kerangka analisis:
+   - **Analisis 1** — exact match %, CER, char accuracy, mean similarity −spasi vs +spasi
+     per engine; distribusi similarity (bin 0–25/…/100%) untuk kedua varian.
+   - **Analisis 2** — pola kesalahan: heatmap konusi karakter GT→OCR (backtrace Levenshtein,
+     '−' = karakter hilang), posisi salah (depan/tengah/belakang), panjang plat vs jumlah
+     karakter salah, daftar "SALAH tapi similarity ≥ 80%".
+   - **Analisis 4** — end-to-end per engine (deteksi benar DAN OCR benar), dipisah dari
+     "deteksi benar tapi OCR salah" dan "gagal deteksi".
+   - **Analisis 5** — ketahanan di "foto sulit" (foto yang ada engine lain yang benar) dan
+     tingkat over-confidence (conf OCR ≥ 0,8 tapi dinilai SALAH).
+   - **Analisis 6** — inferensial: confidence interval 95% (Wilson) exact match per engine;
+     uji McNemar exact berpasangan antar engine per foto (p-value + penanda signifikan).
+   - **Analisis 7** — visualisasi Chart.js: bar exact %, box plot similarity, heatmap,
+     scatter confidence vs similarity, distribusi similarity dengan toggle −spasi/+spasi;
+     angka tampil di atas batang.
+   - **Analisis 3** (pengaruh kondisi citra: sudut/cahaya/blur/oklusi) belum tersedia —
+     metadata tersebut tidak direkam oleh pipeline.
+7. "Uji konsistensi…" (hanya untuk foto yang sudah dinilai DAN minimal terdeteksi
    sekali di threshold operasional — baseline box dibutuhkan): N inferensi (default
    100) dengan augmentasi acak ringan per run; hasilnya: "terdeteksi X dari N run",
    "teks sama dengan baseline Y dari N", "teks sama dengan GT Z dari N" + sebaran.

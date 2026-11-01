@@ -39,6 +39,19 @@ def levenshtein_distance(pred: str, truth: str) -> int:
     return dp[n]
 
 
+def similarity_ratio(pred: str, truth: str) -> float:
+    """Rasio kemiripan 0.0-1.0 berdasarkan jarak Levenshtein (sebelum dikalikan 100)."""
+    m = max(len(truth), len(pred))
+    if m == 0:
+        return 1.0
+    return max(0.0, 1 - levenshtein_distance(pred, truth) / m)
+
+
+def similarity(pred: str, truth: str) -> int:
+    """Persentase kemiripan 0-100 berdasarkan jarak Levenshtein (sensitif urutan)."""
+    return round(similarity_ratio(pred, truth) * 100)
+
+
 def _ann(p):
     ann = getattr(p, 'annotation', None)
     if ann is None or ann.stale or not ann.is_complete():

@@ -1,6 +1,11 @@
 {% extends 'testing/base.html' %}
+{% load static %}
 
 {% block title %}ANPR Testing — Batch{% endblock %}
+
+{% block head %}
+<link href="{% static 'testing/home.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 {% if messages %}
@@ -9,41 +14,70 @@
   {% endfor %}
 {% endif %}
 
+<section class="hero-band">
+  <h1 class="plate-title mb-0">ANPR Testing</h1>
+  <p class="plate-sub mb-0">Uji detektor plat &amp; engine OCR terhadap foto dunia nyata —
+    nilai sendiri ground-truth-nya, lalu bandingkan akurasinya.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">{{ stats.batches }}</div>
+      <div class="stat-label">batch</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ stats.photos }}</div>
+      <div class="stat-label">foto</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ stats.done }}</div>
+      <div class="stat-label">terproses</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ stats.rated }}</div>
+      <div class="stat-label">dinilai</div>
+    </div>
+  </div>
+</section>
+
 <div class="row g-4">
-  <div class="col-md-4">
-    <div class="card shadow-sm">
+  <div class="col-lg-4">
+    <div class="card home-card shadow-sm">
       <div class="card-header">Buat batch baru</div>
       <div class="card-body">
         <form method="post">
           {% csrf_token %}
           <div class="mb-2">
-            <label class="form-label">Nama batch</label>
-            <input name="name" class="form-control" required placeholder="mis. Uji Parkiran Timur 31 Okt">
+            <label class="form-label" for="id_batch_name">Nama batch</label>
+            <input id="id_batch_name" name="name" class="form-control" required placeholder="mis. Uji Parkiran Timur 31 Okt">
           </div>
           <div class="mb-3">
-            <label class="form-label">Deskripsi (opsional)</label>
-            <textarea name="description" class="form-control" rows="2"></textarea>
+            <label class="form-label" for="id_batch_desc">Deskripsi <span class="text-muted">(opsional)</span></label>
+            <textarea id="id_batch_desc" name="description" class="form-control" rows="2"></textarea>
           </div>
           <button class="btn btn-primary w-100">Buat batch</button>
         </form>
       </div>
     </div>
   </div>
-  <div class="col-md-8">
-    <div class="card shadow-sm">
+  <div class="col-lg-8">
+    <div class="card home-card shadow-sm">
       <div class="card-header">Daftar batch</div>
       <div class="list-group list-group-flush">
         {% for b in batches %}
-          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+          <a class="list-group-item list-group-item-action batch-item d-flex justify-content-between align-items-center gap-3"
              href="{% url 'testing:batch_detail' b.id %}">
-            <div>
-              <strong>{{ b.name }}</strong>
-              <div class="text-muted small">{{ b.description|truncatechars:60 }}</div>
+            <div class="min-w-0">
+              <span class="batch-name">{{ b.name }}</span>
+              {% if b.description %}<div class="text-muted small text-truncate">{{ b.description|truncatechars:60 }}</div>{% endif %}
             </div>
-            <span class="badge bg-secondary">{{ b.photo_count }} foto · {{ b.annotated_count }} dinilai</span>
+            <div class="text-nowrap">
+              <span class="mini-plate">{{ b.photo_count }} foto</span>
+              <span class="mini-plate">{{ b.annotated_count }} dinilai</span>
+            </div>
           </a>
         {% empty %}
-          <div class="list-group-item text-muted">Belum ada batch.</div>
+          <div class="list-group-item batch-item text-muted">
+            Belum ada batch. Buat yang pertama di form sebelah kiri — lalu unggah foto plat untuk diuji.
+          </div>
         {% endfor %}
       </div>
     </div>

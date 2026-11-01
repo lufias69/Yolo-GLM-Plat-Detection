@@ -1,0 +1,103 @@
+/* Halaman beranda ANPR Testing — tema plat nomor (TNKB). */
+
+.hero-band {
+  background: #232833;
+  background-image:
+    radial-gradient(circle at 12% 20%, rgba(255,255,255,.05), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(255,255,255,.04), transparent 45%);
+  color: #e9ecef;
+  border-radius: .75rem;
+  padding: 2rem 1.75rem 1.75rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* garis marka putus-putus di dasar band */
+.hero-band::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 10px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg,
+    rgba(255,210,63,.55) 0 48px, transparent 48px 88px);
+  border-radius: 2px;
+}
+
+/* Judul bergaya plat TNKB: dasar putih, teks hitam, tepi reflektif */
+.plate-title {
+  display: inline-block;
+  background: linear-gradient(180deg, #fbfbf7, #ececE2);
+  color: #16181d;
+  font-weight: 800;
+  font-stretch: condensed;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  padding: .5rem 1.4rem .6rem;
+  border: 3px solid #3a3f4b;
+  outline: 2px solid rgba(255,255,255,.35);
+  outline-offset: -7px;
+  border-radius: .5rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 #fff;
+}
+
+.plate-sub {
+  color: #aeb6c2;
+  margin-top: .9rem;
+  max-width: 46ch;
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  margin-top: 1.4rem;
+}
+.hero-stats .stat { min-width: 90px; }
+.hero-stats .stat-num {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.hero-stats .stat-label {
+  font-size: .8rem;
+  color: #9aa3af;
+  margin-top: .25rem;
+}
+
+/* Kartu aksi */
+.home-card { border: 1px solid #e3e6ea; border-radius: .75rem; }
+.home-card .card-header {
+  background: #fff;
+  border-bottom: 1px solid #eceef1;
+  font-weight: 600;
+  border-radius: .75rem .75rem 0 0 !important;
+}
+
+/* Baris batch */
+.batch-item { border: 0; padding: .9rem 1.1rem; }
+.batch-item + .batch-item { border-top: 1px solid #f0f1f4; }
+.batch-item:hover { background: #f7f9fc; }
+.batch-name { font-weight: 600; color: #16181d; }
+
+/* mini-plate untuk angka, senada hero */
+.mini-plate {
+  display: inline-block;
+  background: #f4f4ee;
+  border: 1.5px solid #3a3f4b;
+  border-radius: .3rem;
+  color: #16181d;
+  font-weight: 700;
+  font-size: .74rem;
+  letter-spacing: .04em;
+  padding: .1rem .5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-thin { height: 4px; border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .batch-item, .batch-item * { transition: none !important; }
+}

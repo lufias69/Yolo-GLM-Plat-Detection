@@ -25,7 +25,13 @@ def home(request):
             name=name, description=request.POST.get('description', '').strip())
         return redirect('testing:batch_detail', batch_id=batch.id)
     batches = TestBatch.objects.all()
-    return render(request, 'testing/home.html', {'batches': batches})
+    stats = {
+        'batches': batches.count(),
+        'photos': Photo.objects.count(),
+        'done': Photo.objects.filter(status='done').count(),
+        'rated': Annotation.objects.count(),
+    }
+    return render(request, 'testing/home.html', {'batches': batches, 'stats': stats})
 
 
 def batch_detail(request, batch_id):

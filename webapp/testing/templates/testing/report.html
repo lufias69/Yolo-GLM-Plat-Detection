@@ -7,6 +7,8 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h4 mb-0">Laporan batch — {{ batch.name }}</h1>
   <div>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'testing:batch_ocr_report' batch.id %}">Laporan OCR</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'testing:batch_ocr_analysis' batch.id %}">Analisis Similarity</a>
     <a class="btn btn-sm btn-outline-success" href="/batch/{{ batch.id }}/report/export.csv">Export CSV</a>
     <a class="btn btn-sm btn-outline-success" href="/batch/{{ batch.id }}/report/export.xlsx">Export Excel</a>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'testing:batch_detail' batch.id %}">&larr; Batch</a>
@@ -21,7 +23,7 @@
 {% endif %}
 
 <div class="row g-3 mb-4">
-  <div class="col-md-3">
+  <div class="col-md">
     <div class="card shadow-sm h-100"><div class="card-body">
       <h6 class="text-muted">Deteksi</h6>
       <div>Accuracy: <strong>{{ rep.detection.accuracy|pct }}</strong></div>
@@ -30,7 +32,7 @@
       <div>F1: <strong>{{ rep.detection.f1|pct }}</strong></div>
     </div></div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md">
     <div class="card shadow-sm h-100"><div class="card-body">
       <h6 class="text-muted">Confusion matrix (per foto)</h6>
       <table class="table table-sm mb-0">
@@ -40,16 +42,24 @@
       </table>
     </div></div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md">
     <div class="card shadow-sm h-100"><div class="card-body">
-      <h6 class="text-muted">OCR</h6>
+      <h6 class="text-muted">OCR <span class="small">(engine utama: {{ main_engine }})</span></h6>
       <div>Exact match: <strong>{{ rep.ocr.exact_match|pct }}</strong></div>
       <div>Char accuracy: <strong>{{ rep.ocr.char_accuracy|pct }}</strong></div>
       <div>CER rata-rata: <strong>{{ rep.ocr.cer_mean|num }}</strong></div>
-      <div class="small text-muted">n = {{ rep.ocr.n_evaluated }} foto</div>
+      <div class="small text-muted">n = {{ rep.ocr.n_evaluated }} foto ·
+        <a href="{% url 'testing:batch_ocr_analysis' batch.id %}">analisis semua engine &rarr;</a></div>
     </div></div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h6 class="text-muted">End-to-end <span class="small">(deteksi + OCR)</span></h6>
+      <div>Sukses: <strong>{{ rep.e2e.success|pct_of:rep.e2e.n }}</strong></div>
+      <div class="small text-muted">{{ rep.e2e.success }} dari {{ rep.e2e.n }} foto berplat dinilai</div>
+    </div></div>
+  </div>
+  <div class="col-md">
     <div class="card shadow-sm h-100"><div class="card-body">
       <h6 class="text-muted">Kinerja</h6>
       <div>Latency rata²: <strong>{{ rep.latency.mean_ms|num:'1' }} ms</strong></div>
@@ -64,7 +74,9 @@
   {% if rep.engines %}
   <div class="col-md-7">
     <div class="card shadow-sm"><div class="card-body">
-      <h6>Perbandingan engine OCR <span class="small text-muted">(penilaian manual per engine)</span></h6>
+      <h6 class="d-flex justify-content-between">Perbandingan engine OCR
+        <span class="small text-muted">(penilaian manual per engine)</span>
+        <a class="small" href="{% url 'testing:batch_ocr_analysis' batch.id %}">detail &amp; grafik &rarr;</a></h6>
       <table class="table table-sm mb-0">
         <thead><tr><th>Engine</th><th>Foto dinilai</th><th>Exact match</th><th>Char accuracy</th></tr></thead>
         <tbody>

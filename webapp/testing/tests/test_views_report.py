@@ -49,3 +49,18 @@ class ReportViewTest(TestCase):
         resp = self.client.get(f'/batch/{empty.id}/report/')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('belum dinilai', resp.content.decode())
+
+    def test_links_to_ocr_report_and_analysis(self):
+        body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
+        self.assertIn(f'/batch/{self.batch.id}/report/ocr/', body)
+        self.assertIn(f'/batch/{self.batch.id}/report/ocr/analysis/', body)
+
+    def test_ocr_card_names_main_engine(self):
+        body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
+        self.assertIn('engine utama', body)
+
+    def test_end_to_end_metric_shown(self):
+        # tp.jpg: TP + ocr_ok BENAR -> e2e 1/1 = 100%
+        body = self.client.get(f'/batch/{self.batch.id}/report/').content.decode()
+        self.assertIn('End-to-end', body)
+        self.assertIn('100,00', body)

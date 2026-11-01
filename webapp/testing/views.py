@@ -256,6 +256,7 @@ def batch_report_view(request, batch_id):
         })
     return render(request, 'testing/report.html', {
         'batch': batch, 'rep': rep, 'rows': rows,
+        'main_engine': settings.ANPR['OCR_ENGINE'],
         'roc_available': rep['roc']['auc'] is not None,
         'roc_points_json': json.dumps(rep['roc']['points']),
     })

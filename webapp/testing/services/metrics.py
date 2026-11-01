@@ -217,9 +217,23 @@ def batch_report(batch) -> dict:
         'engines': engine_metrics(photos),
         'latency': latency_metrics(photos),
         'outcomes': outcomes,
+        'e2e': end_to_end_metrics(photos),
         'counts': {'total': len(photos), 'annotated': annotated, 'complete': complete,
                    'stale': stale, 'unannotated': len(photos) - annotated},
     }
+
+
+def end_to_end_metrics(photos) -> dict:
+    """Foto ber-GT ADA yang dinilai lengkap: berapa yang TP DAN OCR BENAR."""
+    n = success = 0
+    for p in photos:
+        ann = _ann(p)
+        if ann is None or ann.gt_presence != 'ADA':
+            continue
+        n += 1
+        if photo_outcome(p) == 'TP' and ann.ocr_ok == 'BENAR':
+            success += 1
+    return {'n': n, 'success': success}
 
 
 def engine_metrics(photos) -> dict:

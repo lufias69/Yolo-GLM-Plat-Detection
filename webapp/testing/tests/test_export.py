@@ -75,3 +75,21 @@ class ExportOcrAllColumnsTest(TestCase):
         data = rows[1]
         self.assertEqual(data[header.index('ocr_glm-ocr')], 'DR 1282 AS')
         self.assertIn('glm-ocr', data[header.index('fragmen_all')])
+
+
+class ExportEngineJudgmentColumnsTest(TestCase):
+    def test_judgment_columns(self):
+        from testing.models import EngineJudgment
+        batch = TestBatch.objects.create(name='BJ')
+        p = Photo.objects.create(batch=batch, original_name='j.jpg', status='done', system_result=sr())
+        ann = Annotation.objects.create(photo=p, gt_presence='ADA', detected_ok='BENAR',
+                                        ocr_ok='BENAR', gt_text='DR 1282 AS',
+                                        target_detection_index=0)
+        EngineJudgment.objects.create(annotation=ann, engine='glm-ocr', ok='SALAH',
+                                      wrong_chars=2, note='E jadi 8')
+        rows = export.rows(batch)
+        header = rows[0]
+        i = header.index('nilai_glm-ocr')
+        self.assertEqual(rows[1][i], 'SALAH')
+        self.assertEqual(rows[1][i + 1], 2)
+        self.assertEqual(rows[1][i + 2], 'E jadi 8')

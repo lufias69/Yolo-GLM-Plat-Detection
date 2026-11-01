@@ -10,9 +10,14 @@ SR2 = {
     'operational_boxes': [0, 1],
     'latency': {'detection_ms': 10.0, 'ocr_ms': 20.0, 'total_ms': 30.0},
     'threshold': 0.25,
+    'ocr_engine': 'easyocr',
+    'ocr_all': [{'engine': e, 'text': 'X', 'conf': 0.5, 'fragments': []}
+                for e in ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr')],
 }
 
 VALID_BASE = {'gt_presence': 'ADA', 'detected_ok': 'BENAR', 'ocr_ok': 'BENAR',
+              'eng_ok_easyocr': 'BENAR', 'eng_ok_paddleocr': 'BENAR',
+              'eng_ok_tesseract': 'BENAR', 'eng_ok_glm-ocr': 'BENAR',
               'multi_plate_confirmed': 'on', 'target_detection_index': '0'}
 
 
@@ -45,12 +50,12 @@ class AnnotateViewTest(TestCase):
         self.assertFalse(Annotation.objects.exists())
 
     def test_wrong_ocr_without_gt_text_rejected(self):
-        data = dict(VALID_BASE, ocr_ok='SALAH', gt_text='')
+        data = dict(VALID_BASE, eng_ok_easyocr='SALAH', gt_text='')
         self.client.post(f'/photo/{self.photo.id}/annotate/', data)
         self.assertFalse(Annotation.objects.exists())
 
     def test_valid_save_normalizes_gt_text(self):
-        data = dict(VALID_BASE, ocr_ok='SALAH', gt_text='b 1234 abc', note='blur')
+        data = dict(VALID_BASE, eng_ok_easyocr='SALAH', gt_text='b 1234 abc', note='blur')
         resp = self.client.post(f'/photo/{self.photo.id}/annotate/', data)
         self.assertEqual(resp.status_code, 302)
         ann = Annotation.objects.get(photo=self.photo)
@@ -79,7 +84,9 @@ class AnnotateViewTest(TestCase):
     def test_single_detection_fills_target_automatically(self):
         sr = dict(SR2, detections=[SR2['detections'][0]], operational_boxes=[0])
         photo = done_photo(self.batch, sr=sr)
-        data = {'gt_presence': 'ADA', 'detected_ok': 'BENAR', 'ocr_ok': 'BENAR'}
+        data = {'gt_presence': 'ADA', 'detected_ok': 'BENAR', 'ocr_ok': 'BENAR',
+                'eng_ok_easyocr': 'BENAR', 'eng_ok_paddleocr': 'BENAR',
+                'eng_ok_tesseract': 'BENAR', 'eng_ok_glm-ocr': 'BENAR'}
         resp = self.client.post(f'/photo/{photo.id}/annotate/', data)
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(Annotation.objects.get(photo=photo).target_detection_index, 0)

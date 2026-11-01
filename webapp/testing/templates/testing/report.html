@@ -61,6 +61,22 @@
 </div>
 
 <div class="row g-3 mb-4">
+  {% if rep.engines %}
+  <div class="col-md-7">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>Perbandingan engine OCR <span class="small text-muted">(penilaian manual per engine)</span></h6>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Engine</th><th>Foto dinilai</th><th>Exact match</th><th>Char accuracy</th></tr></thead>
+        <tbody>
+        {% for eng, m in rep.engines.items %}
+          <tr><td><strong>{{ eng }}</strong></td><td>{{ m.n }}</td>
+              <td>{{ m.exact|pct }}</td><td>{{ m.char_accuracy|pct }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+  {% endif %}
   <div class="col-md-5">
     <div class="card shadow-sm"><div class="card-body">
       <h6>AUC-ROC deteksi: <strong>{% if not roc_available %}N/A{% else %}{{ rep.roc.auc|num }}{% endif %}</strong></h6>

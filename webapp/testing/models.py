@@ -171,3 +171,23 @@ class YoloModel(models.Model):
         name = Path(settings.ANPR['WEIGHTS']).stem if settings.ANPR['WEIGHTS'] else 'best'
         m, _ = cls.objects.get_or_create(name=f'bawaan ({name})', defaults=defaults)
         return m
+
+
+class EngineJudgment(models.Model):
+    """Penilaian manual hasil OCR per engine pada satu foto."""
+    OK_CHOICES = [('BENAR', 'Benar'), ('SALAH', 'Salah')]
+    annotation = models.ForeignKey(Annotation, related_name='engine_judgments',
+                                   on_delete=models.CASCADE)
+    engine = models.CharField(max_length=30)
+    ok = models.CharField(max_length=6, choices=OK_CHOICES)
+    wrong_chars = models.PositiveIntegerField(null=True, blank=True,
+                                              help_text='Jumlah karakter salah; kosong = dihitung otomatis')
+    note = models.CharField(max_length=300, blank=True, default='')
+    judged_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('annotation', 'engine')
+        ordering = ['engine']
+
+    def __str__(self):
+        return f'{self.engine}: {self.ok}'

@@ -7,13 +7,28 @@ import io
 
 from . import metrics
 
+OCR_ENGINES = ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr')
+
 HEADERS = ['file', 'model', 'gt_presence', 'detected_ok', 'target_index', 'ocr_ok', 'gt_text',
            'catatan', 'sistem:deteksi_ada', 'sistem:conf_target', 'sistem:ocr_text',
            'outcome', 'status_penilaian', 'latensi_ms',
            'ocr_easyocr', 'skor_easyocr', 'ocr_paddleocr', 'skor_paddleocr',
            'ocr_tesseract', 'skor_tesseract', 'ocr_glm-ocr', 'skor_glm-ocr', 'fragmen_all']
+JUDGE_SUFFIXES = ['nilai', 'slh_karakter', 'catatan']
+for _e in OCR_ENGINES:
+    for _s in JUDGE_SUFFIXES:
+        HEADERS.append(f'{_s}_{_e}')
 
-OCR_ENGINES = ('easyocr', 'paddleocr', 'tesseract', 'glm-ocr')
+
+def judge_cols(photo, engines):
+    ann = getattr(photo, 'annotation', None)
+    js = {j.engine: j for j in ann.engine_judgments.all()} if ann else {}
+    out = []
+    for e in engines:
+        j = js.get(e)
+        out += [j.ok if j else '', j.wrong_chars if j and j.wrong_chars is not None else '',
+                j.note if j else '']
+    return out
 
 
 def _status_label(photo):
@@ -58,6 +73,7 @@ def rows(batch) -> list:
             p.system_result.get('latency', {}).get('total_ms', ''),
             *engine_cols,
             frag_str,
+            *judge_cols(p, OCR_ENGINES),
         ])
     return out
 

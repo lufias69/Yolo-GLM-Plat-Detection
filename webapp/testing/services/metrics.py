@@ -201,8 +201,40 @@ def batch_report(batch) -> dict:
         'detection': detection_metrics(photos),
         'roc': roc_metrics(photos),
         'ocr': ocr_metrics(photos),
+        'engines': engine_metrics(photos),
         'latency': latency_metrics(photos),
         'outcomes': outcomes,
         'counts': {'total': len(photos), 'annotated': annotated, 'complete': complete,
                    'stale': stale, 'unannotated': len(photos) - annotated},
     }
+
+
+def engine_metrics(photos) -> dict:
+    """Exact match & char accuracy per engine OCR, atas foto yang engine-nya
+    dinilai lengkap dan tidak stale."""
+    per = {}
+    for p in photos:
+        ann = _ann(p)
+        if ann is None or photo_outcome(p) != 'TP':
+            continue
+        gt = ann.gt_text
+        for j in ann.engine_judgments.all():
+            d = per.setdefault(j.engine, {'n': 0, 'exact': 0, 'wrong_sum': 0, 'gt_len_sum': 0})
+            d['n'] += 1
+            if j.ok == 'BENAR':
+                d['exact'] += 1
+            else:
+                wrong = j.wrong_chars if j.wrong_chars is not None else 0
+                d['wrong_sum'] += wrong
+                d['gt_len_sum'] += max(len(gt), 1)
+    out = {}
+    for eng, d in per.items():
+        exact = d['exact'] / d['n'] if d['n'] else None
+        judged_salah = d['n'] - d['exact']
+        char_acc = None
+        if judged_salah and d['gt_len_sum']:
+            char_acc = max(0.0, 1 - d['wrong_sum'] / d['gt_len_sum'])
+        if judged_salah == 0:
+            char_acc = 1.0 if d['n'] else None
+        out[eng] = {'n': d['n'], 'exact': exact, 'char_accuracy': char_acc}
+    return out

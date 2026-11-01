@@ -54,6 +54,22 @@ def next_unannotated(request, batch_id):
     return redirect('testing:photo_detail', photo_id=nxt.id)
 
 
+def _engine_rows(form):
+    results = form.engine_results()
+    rows = []
+    for eng in form.engines:
+        field = form[f'eng_ok_{eng}']
+        rows.append({
+            'engine': eng,
+            'text': results.get(eng, ''),
+            'ok_field': field,
+            'wrong': form[f'eng_wrong_{eng}'].value(),
+            'note': form[f'eng_note_{eng}'].value(),
+            'errors': '; '.join(field.errors),
+        })
+    return rows
+
+
 def photo_detail(request, photo_id):
     photo = get_object_or_404(Photo.objects.select_related('annotation', 'batch'), pk=photo_id)
     if photo.status != 'done':
@@ -64,6 +80,7 @@ def photo_detail(request, photo_id):
         'photo': photo, 'form': form, 'batch': photo.batch,
         'detections': photo.system_result.get('detections', []),
         'operational': photo.operational_boxes,
+        'engine_rows': _engine_rows(form),
     })
 
 
@@ -72,8 +89,13 @@ def annotate(request, photo_id):
     photo = get_object_or_404(Photo.objects.select_related('batch'), pk=photo_id)
     form = AnnotationForm(request.POST, photo=photo)
     if form.is_valid():
+        cd = {k: v for k, v in form.cleaned_data.items()
+              if k in ('gt_presence', 'detected_ok', 'target_detection_index',
+                       'gt_text', 'note', 'multi_plate_confirmed')}
+        cd['ocr_ok'] = form.derived_ocr_ok
         ann, _ = Annotation.objects.update_or_create(
-            photo=photo, defaults={**form.cleaned_data, 'stale': False})
+            photo=photo, defaults={**cd, 'stale': False})
+        form.save_judgments(ann)
         if request.POST.get('next'):
             nxt = _next_unannotated(photo.batch, after_id=photo.id)
             if nxt is not None:
@@ -85,6 +107,7 @@ def annotate(request, photo_id):
         'photo': photo, 'form': form, 'batch': photo.batch,
         'detections': photo.system_result.get('detections', []),
         'operational': photo.operational_boxes,
+        'engine_rows': _engine_rows(form),
     })
 
 

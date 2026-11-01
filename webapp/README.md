@@ -19,11 +19,14 @@ Buka http://127.0.0.1:8000/ . Test: `... webapp\manage.py test testing`.
 
 1. Buat batch → unggah foto (drag & drop boleh banyak).
 2. Foto diproses otomatis (deteksi + OCR) di thread background; halaman auto-refresh.
-3. Klik "Nilai": tandai ada/tidaknya plat, keberhasilan deteksi, keberhasilan OCR
-   (bila salah, isi teks seharusnya = ground truth), catatan. Bila >1 deteksi,
-   pilih box target lebih dulu.
+3. Klik "Nilai": tandai ada/tidaknya plat, keberhasilan deteksi, dan **verdict OCR per engine**
+   (easyocr/paddleocr/tesseract/glm-ocr — masing-masing Benar/Salah; jumlah karakter salah
+   dihitung otomatis dari "teks plat seharusnya" dan bisa dioverride, plus catatan per engine).
+   Bila >1 deteksi, pilih box target lebih dulu.
 4. "Laporan batch": accuracy/precision/recall/F1, confusion matrix, AUC-ROC,
    exact match, char accuracy, CER, latensi; export CSV/Excel.
+   Laporan juga memuat **tabel perbandingan engine OCR** (exact match & char accuracy per
+   engine dari penilaian manual); export menambah kolom nilai_/slh_karakter_/catatan_<engine>.
 5. "Uji konsistensi…" (hanya untuk foto yang sudah dinilai DAN minimal terdeteksi
    sekali di threshold operasional — baseline box dibutuhkan): N inferensi (default
    100) dengan augmentasi acak ringan per run; hasilnya: "terdeteksi X dari N run",

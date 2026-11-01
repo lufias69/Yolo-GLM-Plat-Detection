@@ -120,6 +120,14 @@
         {% endfor %}
       </fieldset>
 
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Teks plat yang benar (ground truth)</label>
+        <input type="text" name="gt_text" class="form-control form-control-lg"
+               value="{{ form.gt_text.value|default:'' }}" placeholder="mis. C 2439 BDC" autofocus>
+        <div class="form-text">Isi ini lebih dulu — jadi acuan menghitung karakter salah tiap engine.</div>
+        {{ form.gt_text.errors }}
+      </div>
+
       <fieldset class="border rounded p-2 mb-3">
         <legend class="h6 mb-1 px-1">Hasil OCR per engine — nilai satu per satu</legend>
         {% for row in engine_rows %}
@@ -147,11 +155,6 @@
         {% endfor %}
       </fieldset>
 
-      <div class="mb-3">
-        <label class="form-label">Teks plat seharusnya (wajib bila OCR SALAH)</label>
-        {{ form.gt_text }}
-        {{ form.gt_text.errors }}
-      </div>
       <div class="mb-3">
         <label class="form-label">Catatan</label>
         {{ form.note }}
